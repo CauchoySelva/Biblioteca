@@ -71,10 +71,16 @@
   }
   #landing.gone{ opacity:0; visibility:hidden; pointer-events:none; }
   .land-grid{
-    display:grid; grid-template-columns: minmax(380px, 560px) minmax(320px, 1fr);
-    gap:56px; align-items:center;
+    display:grid;
+    grid-template-columns: minmax(380px, 560px) minmax(320px, 1fr);
+    grid-template-areas: "top stage" "mid stage" "bottom stage";
+    gap:0 56px; align-items:center;
     width:100%; max-width:1240px; padding:56px 48px; margin:auto;
   }
+  .land-copy-top{ grid-area:top; align-self:end; }
+  .land-stage{ grid-area:stage; }
+  .land-copy-mid{ grid-area:mid; align-self:center; padding:18px 0; }
+  .land-copy-bottom{ grid-area:bottom; align-self:start; }
   .land-copy .eyebrow{
     font-size:12px; letter-spacing:.28em; text-transform:uppercase;
     color:var(--terra); margin-bottom:18px;
@@ -93,26 +99,31 @@
     font-family:var(--display); font-style:italic; font-weight:500;
     font-size:21px; color:var(--cream); margin-bottom:12px;
   }
-  .caminos{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .caminos{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .camino{
-    text-align:left; padding:16px 18px 18px; border-radius:10px;
+    text-align:left; padding:11px 13px; border-radius:9px;
     border:1px solid rgba(193,122,74,.3);
     background:linear-gradient(160deg, rgba(46,29,20,.85), rgba(28,16,10,.8));
     cursor:pointer; transition:border-color .25s, transform .25s, background .25s;
-    display:flex; flex-direction:column; gap:8px;
+    display:flex; flex-direction:column; gap:6px;
     font-family:var(--body); color:var(--muted);
   }
   .camino .cam-tag{
-    align-self:flex-start; font-size:10.5px; letter-spacing:.22em; text-transform:uppercase;
-    padding:3px 9px; border-radius:20px; border:1px solid;
+    align-self:flex-start; font-size:9.5px; letter-spacing:.2em; text-transform:uppercase;
+    padding:3px 8px; border-radius:20px; border:1px solid;
   }
   .camino[data-mode="foto"] .cam-tag{ color:var(--dorado-hi); border-color:rgba(212,168,67,.5); }
   .camino[data-mode="reco"] .cam-tag{ color:var(--terra-hi);  border-color:rgba(193,122,74,.55); }
   .camino strong{
-    font-family:var(--display); font-size:22px; font-weight:600;
-    color:var(--cream); line-height:1.1;
+    font-family:var(--display); font-size:18px; font-weight:600;
+    color:var(--cream); line-height:1.08;
   }
-  .camino span.cam-desc{ font-size:14.5px; line-height:1.55; }
+  /* descripción del tipo, debajo de los botones */
+  .camino-desc{
+    margin-top:12px; min-height:3.4em;
+    font-size:14.5px; line-height:1.55; color:var(--muted);
+    transition:opacity .2s ease;
+  }
   .camino:hover, .camino[aria-pressed="true"]{ transform:translateY(-3px); color:var(--cream); }
   .camino[data-mode="foto"]:hover, .camino[data-mode="foto"][aria-pressed="true"]{ border-color:var(--dorado); }
   .camino[data-mode="reco"]:hover, .camino[data-mode="reco"][aria-pressed="true"]{ border-color:var(--terra); }
@@ -136,9 +147,18 @@
     pointer-events:none;
   }
   @media (max-width:900px){
-    .land-grid{ grid-template-columns:1fr; gap:6px; padding:30px 22px 52px; }
-    .land-stage{ order:-1; height:38vh; }
-    .caminos{ grid-template-columns:1fr; }
+    #landing{ align-items:flex-start; }
+    .land-grid{
+      grid-template-columns:1fr;
+      grid-template-areas: "top" "stage" "mid" "bottom";
+      gap:18px; padding:30px 22px 110px;
+    }
+    .land-copy-top{ align-self:auto; }
+    .land-copy-mid{ align-self:auto; padding:0; }
+    .land-copy-bottom{ align-self:auto; }
+    .land-stage{ height:38vh; }
+    .caminos{ grid-template-columns:1fr 1fr; }
+    .camino-desc{ min-height:0; }
     .land-copy h1{ font-size:clamp(38px, 10vw, 54px); }
   }
 
@@ -410,29 +430,32 @@
 
 <section id="landing" aria-label="Umbral del archivo">
   <div class="land-grid">
-    <div class="land-copy">
+    <div class="land-copy land-copy-top">
       <p class="eyebrow" data-ui="landEyebrow"></p>
       <h1 id="landTitle"></h1>
       <p class="land-lede" data-ui="landLede"></p>
+    </div>
+    <div class="land-stage">
+      <canvas id="landingCv"></canvas>
+      <p class="land-hint" data-ui="landHint"></p>
+    </div>
+    <div class="land-copy land-copy-mid">
       <p class="land-caminos-label" data-ui="landCaminosLabel"></p>
       <div class="caminos">
         <button class="camino" data-mode="foto" aria-pressed="false">
           <span class="cam-tag" data-ui="fotogrametria"></span>
           <strong data-ui="camFotoTitle"></strong>
-          <span class="cam-desc" data-ui="camFotoDesc"></span>
         </button>
         <button class="camino" data-mode="reco" aria-pressed="false">
           <span class="cam-tag" data-ui="reconstruccion"></span>
           <strong data-ui="camRecoTitle"></strong>
-          <span class="cam-desc" data-ui="camRecoDesc"></span>
         </button>
       </div>
+      <p class="camino-desc" id="caminoDesc" data-ui="camFotoDesc"></p>
+    </div>
+    <div class="land-copy land-copy-bottom">
       <p class="land-note" data-ui="landNote"></p>
       <button id="enterBtn" data-ui="enter"></button>
-    </div>
-    <div class="land-stage">
-      <canvas id="landingCv"></canvas>
-      <p class="land-hint" data-ui="landHint"></p>
     </div>
   </div>
 </section>
@@ -1193,18 +1216,22 @@ function initUmbral(){
 
   /* modos: 'foto' = material real + luz dorada · 'reco' = wireframe terracota */
   let sticky = null;
+  const caminoDesc = document.getElementById('caminoDesc');
+  function showDesc(mode){
+    if (caminoDesc) caminoDesc.textContent = (mode === 'reco') ? t(UI.camRecoDesc) : t(UI.camFotoDesc);
+  }
   function setMode(mode){
     meshes.forEach(([m, orig]) => { m.material = (mode === 'reco') ? wireMat : orig; });
     rim.intensity = (mode === 'foto') ? 2.4 : 0;
   }
   document.querySelectorAll('.camino').forEach(bt => {
-    bt.addEventListener('pointerenter', () => setMode(bt.dataset.mode));
-    bt.addEventListener('pointerleave', () => setMode(sticky));
+    bt.addEventListener('pointerenter', () => { setMode(bt.dataset.mode); showDesc(bt.dataset.mode); });
+    bt.addEventListener('pointerleave', () => { setMode(sticky); showDesc(sticky); });
     bt.addEventListener('click', () => {
       sticky = (sticky === bt.dataset.mode) ? null : bt.dataset.mode;
       document.querySelectorAll('.camino').forEach(x =>
         x.setAttribute('aria-pressed', String(x.dataset.mode === sticky)));
-      setMode(sticky);
+      setMode(sticky); showDesc(sticky);
     });
   });
 
