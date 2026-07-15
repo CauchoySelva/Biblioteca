@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Archivo de Objetos — Wa'uro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:        #0D0804;
+    --bg-2:      #15100A;
+    --panel:     #1C120A;
+    --line:      #4A3528;
+    --line-soft: #33241A;
+    --cream:     #E8DCC8;
+    --muted:     #B8A890;
+    --faint:     #8A7A64;
+    --oliva:     #C17A4A;   /* terra — acentos secundarios (etiquetas) */
+    --terra:     #C17A4A;
+    --terra-hi:  #D4945E;
+    --dorado:    #D4A843;   /* oro — proveniencia, hitos */
+    --dorado-hi: #E5C05C;
+    --display:   'Cormorant Garamond', serif;
+    --body:      'Crimson Text', serif;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    background: radial-gradient(ellipse 90% 90% at 50% 40%, var(--bg-2) 0%, var(--bg) 72%);
+    color:var(--cream);
+    font-family:var(--body);
+    font-size:17px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{ font-family:inherit; cursor:pointer; background:none; border:none; color:inherit; }
+  button:focus-visible, a:focus-visible{ outline:2px solid var(--dorado); outline-offset:3px; }
+  img{ max-width:100%; display:block; }
+
+  /* ---------- atmósfera (del deck F&F) ---------- */
+  /* mismo orden de capas que el deck: atmósfera POR ENCIMA del contenido (blend screen, sutil) */
+  .fogv{ position:fixed; z-index:19; pointer-events:none; width:140vw; height:90vh; left:-20vw; opacity:.5; mix-blend-mode:screen; will-change:transform; }
+  .fogv.a{ top:8vh;  background:radial-gradient(ellipse 46% 38% at 32% 50%, rgba(150,98,52,.10), transparent 70%); animation:fogA 75s ease-in-out infinite alternate; }
+  .fogv.b{ top:42vh; background:radial-gradient(ellipse 42% 34% at 68% 50%, rgba(110,84,46,.09), transparent 70%); animation:fogB 95s ease-in-out infinite alternate; }
+  @keyframes fogA{ from{transform:translateX(-6vw)} to{transform:translateX(9vw)} }
+  @keyframes fogB{ from{transform:translateX(7vw)}  to{transform:translateX(-8vw)} }
+  #embers{ position:fixed; inset:0; z-index:20; pointer-events:none; }
+  #petro{
+    position:fixed; inset:0; z-index:21; pointer-events:none; opacity:0;
+    background-image:url('https://images.squarespace-cdn.com/content/67a29672e45a656b8be53344/51a4102d-9cbe-486f-bf6a-0589e4f46855/Petroglifos2.png?content-type=image%2Fpng');
+    background-size:720px; background-repeat:repeat;
+    filter:sepia(1) saturate(3.4) hue-rotate(-28deg) brightness(1.05); mix-blend-mode:screen;
+  }
+  .grain{
+    position:fixed; inset:0; z-index:60; pointer-events:none; opacity:.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.7'/%3E%3C/svg%3E");
+  }
+  header, nav.cats, main{ position:relative; z-index:6; }
+  @media (prefers-reduced-motion:reduce){ .fogv{ animation:none; } }
+
+  /* ---------- umbral (landing) ---------- */
+  body.umbral{ overflow:hidden; }
+  #landing{
+    position:fixed; inset:0; z-index:10;
+    background: radial-gradient(ellipse 90% 90% at 50% 40%, var(--bg-2) 0%, var(--bg) 72%);
+    display:flex; align-items:center; justify-content:center;
+    overflow-y:auto; overscroll-behavior:contain;
+    transition: opacity .9s ease, visibility .9s ease;
+  }
+  #landing.gone{ opacity:0; visibility:hidden; pointer-events:none; }
+  .land-grid{
+    display:grid; grid-template-columns: minmax(380px, 560px) minmax(320px, 1fr);
+    gap:56px; align-items:center;
+    width:100%; max-width:1240px; padding:56px 48px; margin:auto;
+  }
+  .land-copy .eyebrow{
+    font-size:12px; letter-spacing:.28em; text-transform:uppercase;
+    color:var(--terra); margin-bottom:18px;
+  }
+  .land-copy h1{
+    font-family:var(--display); font-weight:600;
+    font-size:clamp(46px, 5.6vw, 78px); line-height:1.0;
+    color:var(--cream); margin-bottom:20px;
+  }
+  .land-copy h1 em{ color:var(--terra-hi); font-style:italic; }
+  .land-lede{
+    font-size:17px; line-height:1.66; color:var(--muted);
+    max-width:58ch; margin-bottom:26px;
+  }
+  .land-caminos-label{
+    font-family:var(--display); font-style:italic; font-weight:500;
+    font-size:21px; color:var(--cream); margin-bottom:12px;
+  }
+  .caminos{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .camino{
+    text-align:left; padding:16px 18px 18px; border-radius:10px;
+    border:1px solid rgba(193,122,74,.3);
+    background:linear-gradient(160deg, rgba(46,29,20,.85), rgba(28,16,10,.8));
+    cursor:pointer; transition:border-color .25s, transform .25s, background .25s;
+    display:flex; flex-direction:column; gap:8px;
+    font-family:var(--body); color:var(--muted);
+  }
+  .camino .cam-tag{
+    align-self:flex-start; font-size:10.5px; letter-spacing:.22em; text-transform:uppercase;
+    padding:3px 9px; border-radius:20px; border:1px solid;
+  }
+  .camino[data-mode="foto"] .cam-tag{ color:var(--dorado-hi); border-color:rgba(212,168,67,.5); }
+  .camino[data-mode="reco"] .cam-tag{ color:var(--terra-hi);  border-color:rgba(193,122,74,.55); }
+  .camino strong{
+    font-family:var(--display); font-size:22px; font-weight:600;
+    color:var(--cream); line-height:1.1;
+  }
+  .camino span.cam-desc{ font-size:14.5px; line-height:1.55; }
+  .camino:hover, .camino[aria-pressed="true"]{ transform:translateY(-3px); color:var(--cream); }
+  .camino[data-mode="foto"]:hover, .camino[data-mode="foto"][aria-pressed="true"]{ border-color:var(--dorado); }
+  .camino[data-mode="reco"]:hover, .camino[data-mode="reco"][aria-pressed="true"]{ border-color:var(--terra); }
+  .land-note{
+    font-size:14.5px; line-height:1.62; color:var(--faint);
+    max-width:58ch; margin:22px 0 28px;
+  }
+  #enterBtn{
+    font-family:var(--display); font-size:23px; font-weight:600; letter-spacing:.02em;
+    color:var(--cream); background:var(--terra); border:1px solid var(--terra);
+    border-radius:4px; padding:13px 46px; cursor:pointer;
+    transition:background .3s, transform .3s;
+  }
+  #enterBtn:hover{ background:var(--terra-hi); transform:translateY(-2px); }
+  .land-stage{ position:relative; height:min(70vh, 620px); }
+  #landingCv{ width:100%; height:100%; display:block; cursor:grab; touch-action:none; }
+  #landingCv.grabbing{ cursor:grabbing; }
+  .land-hint{
+    position:absolute; left:0; right:0; bottom:6px; text-align:center;
+    font-size:11.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint);
+    pointer-events:none;
+  }
+  @media (max-width:900px){
+    .land-grid{ grid-template-columns:1fr; gap:6px; padding:30px 22px 52px; }
+    .land-stage{ order:-1; height:38vh; }
+    .caminos{ grid-template-columns:1fr; }
+    .land-copy h1{ font-size:clamp(38px, 10vw, 54px); }
+  }
+
+  /* ---------- utility type ---------- */
+  .eyebrow{
+    font-family:var(--body);
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--oliva);
+  }
+  .catalog{
+    font-family:var(--body);
+    font-size:11.5px;
+    letter-spacing:.18em;
+    color:var(--faint);
+  }
+
+  /* ---------- header ---------- */
+  header{
+    max-width:1280px; margin:0 auto;
+    padding:44px 32px 8px;
+    display:flex; align-items:flex-end; justify-content:space-between; gap:24px;
+    flex-wrap:wrap;
+  }
+  .masthead h1{
+    font-family:var(--display);
+    font-weight:500;
+    font-size:clamp(34px, 4.5vw, 52px);
+    line-height:1.02;
+    letter-spacing:.01em;
+  }
+  .masthead h1 em{ font-style:italic; color:var(--dorado-hi); }
+  .masthead .eyebrow{ margin-bottom:10px; }
+  .masthead p.sub{
+    margin-top:10px; max-width:52ch; color:var(--muted); font-size:15.5px;
+  }
+  .lang-toggle{ display:flex; gap:2px; border:1px solid var(--line); }
+  .lang-toggle button{
+    padding:7px 13px; font-size:12px; letter-spacing:.14em; color:var(--muted);
+    transition:color .2s, background .2s;
+  }
+  .lang-toggle button[aria-pressed="true"]{ background:var(--line); color:var(--cream); }
+
+  /* ---------- category tabs ---------- */
+  nav.cats{
+    max-width:1280px; margin:0 auto;
+    padding:26px 32px 0;
+    display:flex; gap:6px; flex-wrap:wrap;
+    border-bottom:1px solid var(--line-soft);
+  }
+  nav.cats button{
+    padding:10px 18px 13px;
+    font-size:13.5px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--muted);
+    border-bottom:2px solid transparent;
+    margin-bottom:-1px;
+    transition:color .2s, border-color .2s;
+  }
+  nav.cats button:hover{ color:var(--cream); }
+  nav.cats button[aria-pressed="true"]{ color:var(--dorado-hi); border-bottom-color:var(--dorado); }
+
+  /* ---------- grid ---------- */
+  main{ max-width:1280px; margin:0 auto; padding:34px 32px 80px; }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+    gap:22px;
+  }
+  .card{
+    text-align:left;
+    background:var(--panel);
+    border:1px solid var(--line-soft);
+    position:relative;
+    transition:transform .25s ease, border-color .25s ease;
+    display:flex; flex-direction:column;
+  }
+  .card:hover{ transform:translateY(-3px); border-color:var(--line); }
+  /* archival mounting corners, revealed on hover */
+  .card::before, .card::after,
+  .card .corner-b::before, .card .corner-b::after{
+    content:""; position:absolute; width:14px; height:14px;
+    border-color:var(--dorado); border-style:solid; border-width:0;
+    opacity:0; transition:opacity .3s;
+  }
+  .card::before{ top:6px; left:6px; border-top-width:1px; border-left-width:1px; }
+  .card::after{ top:6px; right:6px; border-top-width:1px; border-right-width:1px; }
+  .card .corner-b::before{ bottom:6px; left:6px; border-bottom-width:1px; border-left-width:1px; }
+  .card .corner-b::after{ bottom:6px; right:6px; border-bottom-width:1px; border-right-width:1px; }
+  .card:hover::before, .card:hover::after,
+  .card:hover .corner-b::before, .card:hover .corner-b::after{ opacity:1; }
+
+  .thumb{
+    aspect-ratio:1/1;
+    background:
+      radial-gradient(320px 220px at 50% 30%, rgba(180,132,50,.10), transparent 70%),
+      linear-gradient(170deg, #20270f, #141a0a);
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .thumb img{ width:100%; height:100%; object-fit:cover; }
+  .thumb .mono{
+    font-family:var(--display); font-size:64px; font-weight:400; font-style:italic;
+    color:var(--line); user-select:none;
+  }
+  .card-info{ padding:15px 16px 17px; display:flex; flex-direction:column; gap:7px; flex:1; }
+  .card-info h3{
+    font-family:var(--display); font-size:23px; font-weight:500; line-height:1.12;
+  }
+  .card-meta{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:auto; padding-top:8px; }
+  .badge{
+    font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+    padding:4px 9px 5px;
+    white-space:nowrap;
+  }
+  .badge.foto{ color:var(--dorado-hi); border:1px solid var(--dorado); }
+  .badge.reco{ color:var(--muted); border:1px solid var(--line); }
+
+  .empty-state{
+    padding:70px 0; text-align:center; color:var(--faint); font-style:italic;
+  }
+
+  /* ---------- detail overlay ---------- */
+  .detail{
+    position:fixed; inset:0; z-index:50;
+    background:transparent;   /* transparente: el objeto flota sobre la atmósfera */
+    display:none;
+    animation:fadeIn .3s ease;
+  }
+  .detail.open{ display:block; }
+  @keyframes fadeIn{ from{opacity:0} to{opacity:1} }
+  /* al ver un objeto, ocultamos la grilla para que solo se vea la atmósfera detrás */
+  body.viewing header, body.viewing nav.cats, body.viewing main{
+    opacity:0; transition:opacity .3s ease; pointer-events:none;
+  }
+
+  .detail-layout{
+    display:grid;
+    grid-template-columns:1fr minmax(340px, 420px);
+    height:100%;
+  }
+  .stage{
+    position:relative;
+    background:transparent;   /* sin caja: se ven brasas y petroglifos detrás del modelo */
+  }
+  .stage canvas{ display:block; width:100%; height:100%; touch-action:none; }
+  .stage .back{
+    position:absolute; top:22px; left:24px; z-index:5;
+    display:flex; align-items:center; gap:9px;
+    font-size:13px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--muted); padding:8px 12px;
+    border:1px solid var(--line-soft); background:rgba(16,20,10,.55);
+    backdrop-filter:blur(4px);
+    transition:color .2s, border-color .2s;
+  }
+  .stage .back:hover{ color:var(--cream); border-color:var(--line); }
+  .stage .hint{
+    position:absolute; bottom:18px; left:50%; transform:translateX(-50%);
+    font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--faint); pointer-events:none;
+    transition:opacity .6s;
+    white-space:nowrap;
+  }
+  .stage .hint.hidden{ opacity:0; }
+  .loader{
+    position:absolute; inset:0; z-index:4;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+    background:rgba(16,20,10,.65);
+    transition:opacity .4s;
+  }
+  .loader.done{ opacity:0; pointer-events:none; }
+  .loader .ring{
+    width:46px; height:46px; border-radius:50%;
+    border:1px solid var(--line);
+    border-top-color:var(--dorado);
+    animation:spin 1s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg);} }
+  .loader span{ font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); }
+
+  /* animation controls */
+  .anim-bar{
+    position:absolute; bottom:52px; left:50%; transform:translateX(-50%);
+    z-index:5; display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:center;
+    max-width:90%;
+  }
+  .anim-bar button{
+    font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+    padding:8px 15px;
+    border:1px solid var(--line);
+    background:rgba(16,20,10,.6); backdrop-filter:blur(4px);
+    color:var(--muted);
+    transition:color .2s, border-color .2s;
+  }
+  .anim-bar button:hover{ color:var(--cream); }
+  .anim-bar button.playing{ color:var(--dorado-hi); border-color:var(--dorado); }
+
+  /* ---------- side panel ---------- */
+  .panel{
+    border-left:1px solid var(--line-soft);
+    background:rgba(21,16,10,.82);
+    backdrop-filter:blur(9px);
+    -webkit-backdrop-filter:blur(9px);
+    overflow-y:auto;
+    padding:40px 34px 60px;
+  }
+  .panel .catalog{ margin-bottom:14px; display:block; }
+  .panel h2{
+    font-family:var(--display); font-weight:500;
+    font-size:clamp(30px, 3vw, 40px); line-height:1.05;
+    margin-bottom:6px;
+  }
+  .panel .cat-label{
+    font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--oliva);
+    margin-bottom:18px;
+  }
+  .panel .badge{ display:inline-block; margin-bottom:24px; }
+  .panel .desc{ color:var(--cream); }
+  .panel .desc p{ margin-bottom:14px; }
+  .rule{
+    height:1px; background:linear-gradient(90deg, var(--dorado), transparent 70%);
+    opacity:.5; margin:28px 0 22px;
+  }
+  .ref-block h4{
+    font-family:var(--body); font-weight:600;
+    font-size:12px; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--oliva); margin-bottom:14px;
+  }
+  .ref-item{ margin-bottom:20px; }
+  .ref-item .frame{
+    border:1px solid var(--line); padding:6px; background:var(--panel);
+  }
+  .ref-item .frame iframe{ width:100%; aspect-ratio:16/9; border:0; display:block; }
+  .ref-item .frame video{ width:100%; display:block; }
+  .ref-fallback{
+    aspect-ratio:4/3; display:flex; align-items:center; justify-content:center;
+    color:var(--faint); font-style:italic; font-size:14px;
+    background:linear-gradient(170deg, #20270f, #141a0a);
+  }
+  .ref-item figcaption{
+    margin-top:9px; font-size:14px; color:var(--muted); font-style:italic; line-height:1.45;
+  }
+  .ref-item figcaption .src{ font-style:normal; color:var(--faint); font-size:12.5px; display:block; margin-top:2px; letter-spacing:.04em; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width:900px){
+    header{ padding:32px 20px 4px; }
+    nav.cats{ padding:20px 20px 0; }
+    main{ padding:26px 20px 70px; }
+    .detail{ overflow-y:auto; }
+    .detail-layout{ grid-template-columns:1fr; grid-template-rows:62vh auto; height:auto; min-height:100%; }
+    .panel{ border-left:none; border-top:1px solid var(--line-soft); padding:30px 22px 60px; }
+    .stage{ height:62vh; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .card, .card::before, .card::after{ transition:none; }
+    .detail{ animation:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="fogv a"></div>
+<div class="fogv b"></div>
+<canvas id="embers"></canvas>
+<div id="petro"></div>
+<div class="grain"></div>
+
+<section id="landing" aria-label="Umbral del archivo">
+  <div class="land-grid">
+    <div class="land-copy">
+      <p class="eyebrow" data-ui="landEyebrow"></p>
+      <h1 id="landTitle"></h1>
+      <p class="land-lede" data-ui="landLede"></p>
+      <p class="land-caminos-label" data-ui="landCaminosLabel"></p>
+      <div class="caminos">
+        <button class="camino" data-mode="foto" aria-pressed="false">
+          <span class="cam-tag" data-ui="fotogrametria"></span>
+          <strong data-ui="camFotoTitle"></strong>
+          <span class="cam-desc" data-ui="camFotoDesc"></span>
+        </button>
+        <button class="camino" data-mode="reco" aria-pressed="false">
+          <span class="cam-tag" data-ui="reconstruccion"></span>
+          <strong data-ui="camRecoTitle"></strong>
+          <span class="cam-desc" data-ui="camRecoDesc"></span>
+        </button>
+      </div>
+      <p class="land-note" data-ui="landNote"></p>
+      <button id="enterBtn" data-ui="enter"></button>
+    </div>
+    <div class="land-stage">
+      <canvas id="landingCv"></canvas>
+      <p class="land-hint" data-ui="landHint"></p>
+    </div>
+  </div>
+</section>
+
+<header>
+  <div class="masthead">
+    <span class="eyebrow" data-ui="eyebrow">Estudio La Selva · Vaupés, Colombia</span>
+    <h1><em>Wa'uro</em> — <span data-ui="title">Archivo de Objetos</span></h1>
+    <p class="sub" data-ui="subtitle"></p>
+  </div>
+  <div class="lang-toggle" role="group" aria-label="Idioma">
+    <button data-lang="es" aria-pressed="true">ES</button>
+    <button data-lang="en" aria-pressed="false">EN</button>
+    <button data-lang="ptbr" aria-pressed="false">PT</button>
+  </div>
+</header>
+
+<nav class="cats" id="cats" aria-label="Categorías"></nav>
+
+<main>
+  <div class="grid" id="grid"></div>
+  <div class="empty-state" id="empty" hidden></div>
+</main>
+
+<!-- ============ DETAIL VIEW ============ -->
+<div class="detail" id="detail" role="dialog" aria-modal="true">
+  <div class="detail-layout">
+    <div class="stage" id="stage">
+      <button class="back" id="backBtn">← <span data-ui="back">Volver al archivo</span></button>
+      <div class="loader" id="loader"><div class="ring"></div><span id="loaderText"></span></div>
+      <div class="anim-bar" id="animBar"></div>
+      <div class="hint" id="hint"></div>
+    </div>
+    <aside class="panel" id="panel"></aside>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+/* ================================================================
+   1. MANIFIESTO DE ASSETS
+   ----------------------------------------------------------------
+   Para añadir un objeto real:
+   - Sube el .glb, el thumbnail y los medios históricos a tu repo
+     de GitHub (servido por GitHub Pages o jsDelivr).
+   - Añade una entrada aquí. Nada más del archivo cambia.
+
+   Campos:
+   id          : único, sin espacios
+   catalog     : número de ficha (WA-<CAT>-###)
+   category    : personajes | criaturas | fauna | flora | arquitectura | vestimenta | herramientas | arte
+   provenance  : 'reconstruccion' | 'fotogrametria'
+   name/desc   : { es, en, ptbr }
+   model       : URL del .glb
+   thumb       : URL de imagen (o null → monograma)
+   media       : referencias históricas, cada una:
+                 { type:'image', src, caption:{...}, source:'...' }
+                 { type:'vimeo', vimeoId:'123456', caption:{...}, source:'...' }
+                 { type:'video', src:'...mp4', caption:{...}, source:'...' }
+   ================================================================ */
+
+const CATEGORIES = [
+  { key:'personajes',   code:'PER', label:{ es:'Personajes',   en:'Characters',   ptbr:'Personagens' } },
+  { key:'criaturas',    code:'CRI', label:{ es:'Criaturas',    en:'Creatures',    ptbr:'Criaturas' } },
+  { key:'fauna',        code:'FAU', label:{ es:'Fauna',        en:'Fauna',        ptbr:'Fauna' } },
+  { key:'flora',        code:'FLO', label:{ es:'Flora',        en:'Flora',        ptbr:'Flora' } },
+  { key:'arquitectura', code:'ARQ', label:{ es:'Arquitectura', en:'Architecture', ptbr:'Arquitetura' } },
+  { key:'vestimenta',   code:'VES', label:{ es:'Vestimenta',   en:'Clothing',     ptbr:'Vestimenta' } },
+  { key:'herramientas', code:'HER', label:{ es:'Herramientas', en:'Tools',        ptbr:'Ferramentas' } },
+  { key:'arte',         code:'ART', label:{ es:'Arte / Música', en:'Art / Music',   ptbr:'Arte / Música' } },
+];
+
+/* --- MODELOS DE PRUEBA (Khronos glTF samples) — reemplazar --- */
+const SAMPLE = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0';
+
+/* ----------------------------------------------------------------
+   FUENTE DE DATOS EN VIVO
+   La matriz real vive en Google Sheets y se publica como assets.json
+   en el repo (GitHub Pages). La web lee ESE archivo al cargar.
+   Si el fetch falla (aún no publicado, sin red), se usan los
+   modelos de prueba de abajo (FALLBACK_ASSETS) para no verse vacía.
+   ---------------------------------------------------------------- */
+const ASSETS_URL = 'https://cauchoyselva.github.io/wauro-assets/assets.json';
+
+let ASSETS = [];  /* se llena en boot(): con el JSON en vivo o con el fallback */
+
+const FALLBACK_ASSETS = [
+  {
+    id:'prueba-personaje',
+    catalog:'WA-PER-001',
+    category:'personajes',
+    provenance:'reconstruccion',
+    name:{ es:'Modelo de prueba — Personaje', en:'Test model — Character', ptbr:'Modelo de teste — Personagem' },
+    desc:{
+      es:'<p>Personaje riggeado de prueba (Cesium Man, Khronos Group) con un ciclo de caminata. Sirve para validar cómo se comportan los personajes de <em>Wa\'uro</em> en el visor: skinning, animación esquelética y encuadre vertical.</p>',
+      en:'<p>Rigged test character (Cesium Man, Khronos Group) with a walk cycle. It validates how <em>Wa\'uro</em> characters behave in the viewer: skinning, skeletal animation and vertical framing.</p>',
+      ptbr:'<p>Personagem riggeado de teste (Cesium Man, Khronos Group) com um ciclo de caminhada. Valida como os personagens de <em>Wa\'uro</em> se comportam no visor: skinning, animação esquelética e enquadramento vertical.</p>'
+    },
+    model: SAMPLE + '/CesiumMan/glTF-Binary/CesiumMan.glb',
+    thumb:null,
+    media:[]
+  },
+  {
+    id:'prueba-casco',
+    catalog:'WA-VES-001',
+    category:'vestimenta',
+    provenance:'fotogrametria',
+    name:{ es:'Modelo de prueba — Casco', en:'Test model — Helmet', ptbr:'Modelo de teste — Capacete' },
+    desc:{
+      es:'<p>Objeto de prueba mientras se integran los assets reales de <em>Wa\'uro</em>. Este modelo (Damaged Helmet, Khronos Group) sirve para validar materiales PBR, iluminación y sombras de contacto en el visor.</p><p>Reemplázalo editando el manifiesto al inicio del archivo.</p>',
+      en:'<p>Placeholder while the real <em>Wa\'uro</em> assets are integrated. This model (Damaged Helmet, Khronos Group) validates PBR materials, lighting and contact shadows in the viewer.</p><p>Replace it by editing the manifest at the top of the file.</p>',
+      ptbr:'<p>Objeto de teste enquanto os assets reais de <em>Wa\'uro</em> são integrados. Este modelo (Damaged Helmet, Khronos Group) valida materiais PBR, iluminação e sombras de contato no visor.</p><p>Substitua-o editando o manifesto no início do arquivo.</p>'
+    },
+    model: SAMPLE + '/DamagedHelmet/glTF-Binary/DamagedHelmet.glb',
+    thumb:null,
+    media:[
+      {
+        type:'image',
+        src:'',
+        caption:{
+          es:'Aquí iría la referencia histórica: un dibujo, fotografía o fotograma de archivo que sirvió como punto de partida.',
+          en:'The historical reference would go here: a drawing, photograph or archival film frame used as a starting point.',
+          ptbr:'Aqui iria a referência histórica: um desenho, fotografia ou fotograma de arquivo usado como ponto de partida.'
+        },
+        source:'Fuente / colección / año'
+      }
+    ]
+  },
+  {
+    id:'prueba-zorro',
+    catalog:'WA-PRA-001',
+    category:'herramientas',
+    provenance:'reconstruccion',
+    name:{ es:'Modelo de prueba — Animado', en:'Test model — Animated', ptbr:'Modelo de teste — Animado' },
+    desc:{
+      es:'<p>Este modelo (Fox, Khronos Group) contiene tres clips de animación. Sirve para probar el reproductor: los botones bajo el visor alternan entre clips y pausan la reproducción.</p>',
+      en:'<p>This model (Fox, Khronos Group) contains three animation clips. It tests the player: the buttons under the viewer switch between clips and pause playback.</p>',
+      ptbr:'<p>Este modelo (Fox, Khronos Group) contém três clipes de animação. Serve para testar o reprodutor: os botões sob o visor alternam entre clipes e pausam a reprodução.</p>'
+    },
+    model: SAMPLE + '/Fox/glTF-Binary/Fox.glb',
+    thumb:null,
+    media:[]
+  },
+  {
+    id:'prueba-pato',
+    catalog:'WA-ART-001',
+    category:'arte',
+    provenance:'reconstruccion',
+    name:{ es:'Modelo de prueba — Pato', en:'Test model — Duck', ptbr:'Modelo de teste — Pato' },
+    desc:{
+      es:'<p>Modelo ligero (Duck, Khronos Group) para probar el encuadre automático de cámara con objetos de proporciones distintas.</p>',
+      en:'<p>Lightweight model (Duck, Khronos Group) to test automatic camera framing with differently proportioned objects.</p>',
+      ptbr:'<p>Modelo leve (Duck, Khronos Group) para testar o enquadramento automático da câmera com objetos de proporções diferentes.</p>'
+    },
+    model: SAMPLE + '/Duck/glTF-Binary/Duck.glb',
+    thumb:null,
+    media:[]
+  },
+  {
+    id:'prueba-linterna',
+    catalog:'WA-ARQ-001',
+    category:'arquitectura',
+    provenance:'fotogrametria',
+    name:{ es:'Modelo de prueba — Linterna', en:'Test model — Lantern', ptbr:'Modelo de teste — Lanterna' },
+    desc:{
+      es:'<p>Modelo con emisivos (Lantern, Khronos Group), útil para verificar cómo se comportan materiales emisivos y metálicos bajo la iluminación del visor.</p>',
+      en:'<p>Model with emissives (Lantern, Khronos Group), useful to verify how emissive and metallic materials behave under the viewer lighting.</p>',
+      ptbr:'<p>Modelo com emissivos (Lantern, Khronos Group), útil para verificar como materiais emissivos e metálicos se comportam sob a iluminação do visor.</p>'
+    },
+    model: SAMPLE + '/Lantern/glTF-Binary/Lantern.glb',
+    thumb:null,
+    media:[
+      /* Ejemplo de referencia en Vimeo:
+      { type:'vimeo', vimeoId:'000000000',
+        caption:{ es:'Registro fílmico, c. 1920.', en:'Film record, c. 1920.', ptbr:'Registro fílmico, c. 1920.' },
+        source:'Archivo / colección' }
+      */
+    ]
+  },
+];
+
+/* ================================================================
+   2. UI STRINGS + IDIOMA
+   ================================================================ */
+const UI = {
+  title:    { es:'Archivo de Objetos', en:'Object Archive', ptbr:'Arquivo de Objetos' },
+  eyebrow:  { es:'Estudio La Selva · Vaupés, Colombia', en:'Estudio La Selva · Vaupés, Colombia', ptbr:'Estudio La Selva · Vaupés, Colômbia' },
+  subtitle: {
+    es:'Reconstrucciones y digitalizaciones de artefactos del pueblo Tukano, creadas junto a la comunidad para el mundo de Wa\'uro.',
+    en:'Reconstructions and digitizations of Tukano artifacts, created alongside the community for the world of Wa\'uro.',
+    ptbr:'Reconstruções e digitalizações de artefatos do povo Tukano, criadas junto à comunidade para o mundo de Wa\'uro.'
+  },
+  all:      { es:'Todos', en:'All', ptbr:'Todos' },
+  back:     { es:'Volver al archivo', en:'Back to archive', ptbr:'Voltar ao arquivo' },
+  loading:  { es:'Cargando modelo', en:'Loading model', ptbr:'Carregando modelo' },
+  hint:     { es:'Arrastra para rotar · Rueda o pellizco para acercar', en:'Drag to rotate · Scroll or pinch to zoom', ptbr:'Arraste para girar · Role ou belisque para aproximar' },
+  refs:     { es:'Referencia histórica', en:'Historical reference', ptbr:'Referência histórica' },
+  anims:    { es:'Animaciones', en:'Animations', ptbr:'Animações' },
+  pause:    { es:'Pausa', en:'Pause', ptbr:'Pausa' },
+  empty:    { es:'No hay objetos en esta categoría todavía.', en:'No objects in this category yet.', ptbr:'Ainda não há objetos nesta categoria.' },
+  reconstruccion: { es:'Reconstrucción', en:'Reconstruction', ptbr:'Reconstrução' },
+  fotogrametria:  { es:'Fotogrametría',  en:'Photogrammetry', ptbr:'Fotogrametria' },
+  loadError:{ es:'No se pudo cargar el modelo. Verifica la URL en el manifiesto.', en:'Could not load the model. Check the URL in the manifest.', ptbr:'Não foi possível carregar o modelo. Verifique a URL no manifesto.' },
+  /* --- umbral (landing) --- */
+  landEyebrow: { es:'Estudio La Selva · Vaupés, Colombia', en:'Estudio La Selva · Vaupés, Colombia', ptbr:'Estudio La Selva · Vaupés, Colômbia' },
+  landTitle: {
+    es:'Archivo <em>Wa\'uro</em>',
+    en:'The <em>Wa\'uro</em> Archive',
+    ptbr:'Arquivo <em>Wa\'uro</em>'
+  },
+  landLede: {
+    es:'La biblioteca de assets de Wa\'uro es una colección digital de preservación y consulta creada a partir de la producción del juego. Reúne objetos, personajes, criaturas y entornos del Vaupés, y funciona no solo como base visual y técnica del proyecto, sino también como un archivo vivo de memorias materiales, históricas y orales.',
+    en:'The Wa\'uro asset library is a digital collection for preservation and consultation, born from the production of the game. It gathers objects, characters, creatures and environments of the Vaupés, and serves not only as the project\'s visual and technical foundation, but as a living archive of material, historical and oral memory.',
+    ptbr:'A biblioteca de assets de Wa\'uro é uma coleção digital de preservação e consulta criada a partir da produção do jogo. Reúne objetos, personagens, criaturas e ambientes do Vaupés, e funciona não só como base visual e técnica do projeto, mas também como um arquivo vivo de memórias materiais, históricas e orais.'
+  },
+  landCaminosLabel: {
+    es:'Para construirla seguimos dos caminos',
+    en:'To build it, we follow two paths',
+    ptbr:'Para construí-la seguimos dois caminhos'
+  },
+  camFotoTitle: { es:'Lo que permanece', en:'What remains', ptbr:'O que permanece' },
+  camFotoDesc: {
+    es:'Los elementos que aún existen se registran mediante fotogrametría.',
+    en:'Elements that still exist are captured through photogrammetry.',
+    ptbr:'Os elementos que ainda existem são registrados por fotogrametria.'
+  },
+  camRecoTitle: { es:'Lo que desapareció', en:'What was lost', ptbr:'O que desapareceu' },
+  camRecoDesc: {
+    es:'Lo que desapareció —o solo ha existido en la tradición oral— se reconstruye mediante modelado digital a partir de documentación histórica, memoria oral y validación comunitaria.',
+    en:'What disappeared — or has only ever existed in oral tradition — is rebuilt through digital modeling, drawing on historical documentation, oral memory and community validation.',
+    ptbr:'O que desapareceu — ou só existiu na tradição oral — é reconstruído por modelagem digital a partir de documentação histórica, memória oral e validação comunitária.'
+  },
+  landNote: {
+    es:'Así, la biblioteca conserva objetos, vegetación, fauna, personajes históricos como Wa\'uro, misioneros, exploradores o caucheros, y también personajes y criaturas mitológicas que hasta ahora solo vivían en el relato.',
+    en:'The library thus preserves objects, plants, fauna, historical figures such as Wa\'uro, missionaries, explorers and rubber traders — and also mythological characters and creatures that, until now, lived only in the telling.',
+    ptbr:'Assim, a biblioteca conserva objetos, vegetação, fauna, personagens históricos como Wa\'uro, missionários, exploradores ou seringueiros, e também personagens e criaturas mitológicas que até agora só viviam no relato.'
+  },
+  enter: { es:'Entrar al archivo', en:'Enter the archive', ptbr:'Entrar no arquivo' },
+  landHint: { es:'Arrastra el objeto para girarlo', en:'Drag the object to rotate it', ptbr:'Arraste o objeto para girá-lo' },
+};
+
+let lang = 'es';
+const t = (o) => (o && typeof o === 'object') ? (o[lang] ?? o.es ?? '') : (o ?? '');
+
+/* ================================================================
+   3. GRID + NAVEGACIÓN
+   ================================================================ */
+const $grid  = document.getElementById('grid');
+const $cats  = document.getElementById('cats');
+const $empty = document.getElementById('empty');
+let activeCat = 'all';
+
+function renderCats(){
+  $cats.innerHTML = '';
+  const mk = (key, label) => {
+    const b = document.createElement('button');
+    b.textContent = label;
+    b.setAttribute('aria-pressed', String(activeCat === key));
+    b.addEventListener('click', () => { activeCat = key; renderCats(); renderGrid(); });
+    $cats.appendChild(b);
+  };
+  mk('all', t(UI.all));
+  CATEGORIES.forEach(c => mk(c.key, t(c.label)));
+}
+
+function renderGrid(){
+  $grid.innerHTML = '';
+  const list = ASSETS.filter(a => activeCat === 'all' || a.category === activeCat);
+  $empty.hidden = list.length > 0;
+  $empty.textContent = t(UI.empty);
+
+  list.forEach(a => {
+    const cat = CATEGORIES.find(c => c.key === a.category);
+    const card = document.createElement('button');
+    card.className = 'card';
+    card.setAttribute('aria-label', t(a.name));
+    card.innerHTML = `
+      <div class="corner-b"></div>
+      <div class="thumb">${
+        a.thumb
+          ? `<img src="${a.thumb}" alt="" loading="lazy">`
+          : `<span class="mono">${t(a.name).charAt(0)}</span>`
+      }</div>
+      <div class="card-info">
+        <span class="catalog">${a.catalog}</span>
+        <h3>${t(a.name)}</h3>
+        <div class="card-meta">
+          <span class="eyebrow">${cat ? t(cat.label) : ''}</span>
+          <span class="badge ${a.provenance === 'fotogrametria' ? 'foto' : 'reco'}">${t(UI[a.provenance])}</span>
+        </div>
+      </div>`;
+    card.addEventListener('click', () => openDetail(a));
+    $grid.appendChild(card);
+  });
+}
+
+function renderHeader(){
+  document.querySelector('[data-ui="title"]').textContent = t(UI.title);
+  document.querySelector('[data-ui="eyebrow"]').textContent = t(UI.eyebrow);
+  document.querySelector('[data-ui="subtitle"]').textContent = t(UI.subtitle);
+  document.querySelector('#backBtn [data-ui="back"]').textContent = t(UI.back);
+  document.getElementById('hint').textContent = t(UI.hint);
+  document.getElementById('loaderText').textContent = t(UI.loading);
+}
+
+function renderLanding(){
+  document.getElementById('landTitle').innerHTML = t(UI.landTitle);
+  document.querySelectorAll('#landing [data-ui]').forEach(el => {
+    const key = el.dataset.ui;
+    if (UI[key]) el.textContent = t(UI[key]);
+  });
+}
+
+document.querySelectorAll('.lang-toggle button').forEach(b => {
+  b.addEventListener('click', () => {
+    lang = b.dataset.lang;
+    document.querySelectorAll('.lang-toggle button')
+      .forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    renderHeader(); renderCats(); renderGrid(); renderLanding();
+    if (currentAsset) renderPanel(currentAsset);
+  });
+});
+
+/* ================================================================
+   4. DETAIL VIEW + PANEL
+   ================================================================ */
+const $detail  = document.getElementById('detail');
+const $panel   = document.getElementById('panel');
+const $backBtn = document.getElementById('backBtn');
+let currentAsset = null;
+
+function renderPanel(a){
+  const cat = CATEGORIES.find(c => c.key === a.category);
+  let mediaHTML = '';
+  if (a.media && a.media.length){
+    const items = a.media.map(m => {
+      let frame = '';
+      if (m.type === 'vimeo' && m.vimeoId){
+        frame = `<iframe src="https://player.vimeo.com/video/${m.vimeoId}?dnt=1&title=0&byline=0&portrait=0" allow="fullscreen; picture-in-picture" title=""></iframe>`;
+      } else if (m.type === 'video' && m.src){
+        frame = `<video src="${m.src}" controls preload="metadata"></video>`;
+      } else if (m.type === 'image' && m.src){
+        frame = `<img src="${m.src}" alt="" loading="lazy"
+                   onerror="this.outerHTML='<div class=&quot;ref-fallback&quot;>· imagen de referencia ·</div>'">`;
+      } else {
+        frame = `<div class="ref-fallback">· referencia pendiente ·</div>`;
+      }
+      return `
+        <figure class="ref-item">
+          <div class="frame">${frame}</div>
+          <figcaption>${t(m.caption)}${m.source ? `<span class="src">${m.source}</span>` : ''}</figcaption>
+        </figure>`;
+    }).join('');
+    mediaHTML = `<div class="rule"></div><div class="ref-block"><h4>${t(UI.refs)}</h4>${items}</div>`;
+  }
+
+  $panel.innerHTML = `
+    <span class="catalog">${a.catalog}</span>
+    <h2>${t(a.name)}</h2>
+    <div class="cat-label">${cat ? t(cat.label) : ''}</div>
+    <span class="badge ${a.provenance === 'fotogrametria' ? 'foto' : 'reco'}">${t(UI[a.provenance])}</span>
+    <div class="desc">${t(a.desc)}</div>
+    ${mediaHTML}`;
+}
+
+function openDetail(a){
+  currentAsset = a;
+  renderPanel(a);
+  $detail.classList.add('open');
+  document.body.classList.add('viewing');
+  document.body.style.overflow = 'hidden';
+  $backBtn.focus();
+  viewer.load(a);
+}
+
+function closeDetail(){
+  $detail.classList.remove('open');
+  document.body.classList.remove('viewing');
+  document.body.style.overflow = '';
+  currentAsset = null;
+  viewer.clear();
+}
+
+$backBtn.addEventListener('click', closeDetail);
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $detail.classList.contains('open')) closeDetail();
+});
+
+/* ================================================================
+   5. VISOR 3D
+   ================================================================ */
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+class Viewer {
+  constructor(container){
+    this.container = container;
+    this.renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.0;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(this.renderer.domElement);
+
+    this.scene = new THREE.Scene();
+
+    // PBR environment (sin archivos HDR externos)
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+    this.camera = new THREE.PerspectiveCamera(38, 1, 0.01, 1000);
+
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.06;
+    this.controls.autoRotate = !reducedMotion;
+    this.controls.autoRotateSpeed = 0.9;
+    this._resumeTimer = null;
+    this.controls.addEventListener('start', () => {
+      this.controls.autoRotate = false;                 // pausa mientras se manipula
+      clearTimeout(this._resumeTimer);
+      document.getElementById('hint').classList.add('hidden');
+    });
+    this.controls.addEventListener('end', () => {
+      clearTimeout(this._resumeTimer);
+      this._resumeTimer = setTimeout(() => {            // retoma el giro lento tras soltar
+        this.controls.autoRotate = !reducedMotion;
+      }, 1600);
+    });
+
+    // Luces: key dorada cálida + relleno frío tenue
+    const key = new THREE.DirectionalLight(0xffe3b0, 1.6);
+    key.position.set(3, 5, 2.5);
+    key.castShadow = true;
+    key.shadow.mapSize.set(2048, 2048);
+    key.shadow.bias = -0.0004;
+    this.scene.add(key);
+    this.key = key;
+
+    const fill = new THREE.DirectionalLight(0xb9c8d8, 0.35);
+    fill.position.set(-4, 2, -3);
+    this.scene.add(fill);
+
+    // Sombra de contacto
+    const shadowMat = new THREE.ShadowMaterial({ opacity: 0.34 });
+    this.ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), shadowMat);
+    this.ground.rotation.x = -Math.PI / 2;
+    this.ground.receiveShadow = true;
+    this.scene.add(this.ground);
+
+    // Loaders (Draco listo para los modelos de fotogrametría comprimidos)
+    this.loader = new GLTFLoader();
+    const draco = new DRACOLoader();
+    draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/');
+    this.loader.setDRACOLoader(draco);
+
+    this.mixer = null;
+    this.actions = [];
+    this.activeAction = null;
+    this.model = null;
+    this.clock = new THREE.Clock();
+    this.loadToken = 0;
+
+    this._resize = this._resize.bind(this);
+    window.addEventListener('resize', this._resize);
+    this._resize();
+
+    this.renderer.setAnimationLoop(() => this._tick());
+  }
+
+  _resize(){
+    const w = this.container.clientWidth || 1;
+    const h = this.container.clientHeight || 1;
+    this.renderer.setSize(w, h);
+    this.camera.aspect = w / h;
+    this.camera.updateProjectionMatrix();
+  }
+
+  _tick(){
+    const dt = this.clock.getDelta();
+    if (this.mixer) this.mixer.update(dt);
+    this.controls.update();
+    this.renderer.render(this.scene, this.camera);
+  }
+
+  clear(){
+    this.loadToken++;
+    this._stopAnims();
+    if (this.model){
+      this.scene.remove(this.model);
+      this.model.traverse(o => {
+        if (o.geometry) o.geometry.dispose();
+        if (o.material){
+          const mats = Array.isArray(o.material) ? o.material : [o.material];
+          mats.forEach(m => {
+            Object.values(m).forEach(v => { if (v && v.isTexture) v.dispose(); });
+            m.dispose();
+          });
+        }
+      });
+      this.model = null;
+    }
+    document.getElementById('animBar').innerHTML = '';
+  }
+
+  _stopAnims(){
+    if (this.mixer) this.mixer.stopAllAction();
+    this.mixer = null; this.actions = []; this.activeAction = null;
+  }
+
+  load(asset){
+    this.clear();
+    const token = this.loadToken;
+    const $loader = document.getElementById('loader');
+    const $loaderText = document.getElementById('loaderText');
+    $loader.classList.remove('done');
+    $loaderText.textContent = t(UI.loading);
+    document.getElementById('hint').classList.remove('hidden');
+    this.controls.autoRotate = !reducedMotion;
+
+    requestAnimationFrame(this._resize);
+
+    this.loader.load(
+      asset.model,
+      (gltf) => {
+        if (token !== this.loadToken) return; // se cerró o cambió de asset
+        this.model = gltf.scene;
+        this.model.traverse(o => {
+          if (o.isMesh){ o.castShadow = true; }
+        });
+
+        // Encuadre automático
+        const box = new THREE.Box3().setFromObject(this.model);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z) || 1;
+
+        this.model.position.sub(center);      // centrar en el origen
+        this.model.position.y += size.y / 2;  // apoyar la base en el suelo (y=0)
+        this.ground.position.y = 0;
+
+        // recentrar target a la altura media del objeto
+        const targetY = size.y / 2;
+        this.controls.target.set(0, targetY, 0);
+
+        const fov = this.camera.fov * (Math.PI / 180);
+        let dist = (maxDim / 2) / Math.tan(fov / 2);
+        dist *= 1.55;
+        this.camera.position.set(dist * 0.8, targetY + dist * 0.35, dist);
+        this.camera.near = maxDim / 100;
+        this.camera.far = maxDim * 100;
+        this.camera.updateProjectionMatrix();
+        this.controls.minDistance = maxDim * 0.35;
+        this.controls.maxDistance = maxDim * 6;
+        this.controls.update();
+
+        // ajustar cámara de sombras al tamaño del objeto
+        const s = maxDim * 1.2;
+        this.key.position.set(3, 5, 2.5).normalize().multiplyScalar(maxDim * 3);
+        Object.assign(this.key.shadow.camera, { left:-s, right:s, top:s, bottom:-s, near:0.01, far:maxDim*8 });
+        this.key.shadow.camera.updateProjectionMatrix();
+
+        this.scene.add(this.model);
+
+        // Animaciones
+        if (gltf.animations && gltf.animations.length){
+          this.mixer = new THREE.AnimationMixer(this.model);
+          this.actions = gltf.animations.map(clip => ({
+            name: clip.name || 'Clip',
+            action: this.mixer.clipAction(clip)
+          }));
+          this._buildAnimBar();
+        }
+
+        $loader.classList.add('done');
+      },
+      (xhr) => {
+        if (token !== this.loadToken) return;
+        if (xhr.total){
+          const pct = Math.round((xhr.loaded / xhr.total) * 100);
+          $loaderText.textContent = `${t(UI.loading)} · ${pct}%`;
+        }
+      },
+      (err) => {
+        if (token !== this.loadToken) return;
+        console.error('GLB load error:', err);
+        $loaderText.textContent = t(UI.loadError);
+        $loader.querySelector('.ring').style.display = 'none';
+      }
+    );
+  }
+
+  _buildAnimBar(){
+    const bar = document.getElementById('animBar');
+    bar.innerHTML = '';
+    const buttons = [];
+
+    const setPlaying = (btn) => buttons.forEach(b => b.classList.toggle('playing', b === btn));
+
+    this.actions.forEach(({ name, action }) => {
+      const b = document.createElement('button');
+      b.textContent = '▸ ' + name;
+      b.addEventListener('click', () => {
+        if (this.activeAction === action && !action.paused){
+          action.paused = true;
+          b.classList.remove('playing');
+          return;
+        }
+        if (this.activeAction && this.activeAction !== action){
+          this.activeAction.fadeOut(0.25);
+        }
+        action.reset().fadeIn(0.25).play();
+        action.paused = false;
+        this.activeAction = action;
+        setPlaying(b);
+      });
+      bar.appendChild(b);
+      buttons.push(b);
+    });
+  }
+}
+
+const viewer = new Viewer(document.getElementById('stage'));
+
+/* ================================================================
+   6. ATMÓSFERA — brasas + cursor rupestre (del deck F&F)
+   ================================================================ */
+(function initEmbers(){
+  const cv = document.getElementById('embers');
+  const ctx = cv.getContext('2d');
+  const P = [];
+  function size(){ cv.width = innerWidth; cv.height = innerHeight; }
+  size(); addEventListener('resize', size);
+  const COUNT = reducedMotion ? 0 : (innerWidth < 700 ? 20 : 44);
+  for (let i=0;i<COUNT;i++){
+    P.push({
+      x:Math.random()*innerWidth, y:Math.random()*innerHeight,
+      r:0.7+Math.random()*1.8, s:0.1+Math.random()*0.34,
+      drift:(Math.random()-0.5)*0.17, ph:Math.random()*Math.PI*2,
+      gold:Math.random()<0.35
+    });
+  }
+  if (COUNT>0)(function tick(t){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    for (const p of P){
+      p.y -= p.s; p.x += p.drift + Math.sin(t*0.0005 + p.ph)*0.12;
+      if (p.y < -8){ p.y = cv.height + 8; p.x = Math.random()*cv.width; }
+      const a = 0.22 + 0.26*Math.abs(Math.sin(t*0.001 + p.ph));
+      ctx.beginPath();
+      ctx.fillStyle = p.gold ? 'rgba(220,176,80,'+a+')' : 'rgba(200,126,76,'+a+')';
+      ctx.shadowBlur = 5;
+      ctx.shadowColor = p.gold ? 'rgba(212,168,67,0.6)' : 'rgba(193,122,74,0.5)';
+      ctx.arc(p.x, p.y, p.r, 0, 7);
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+    requestAnimationFrame(tick);
+  })(0);
+})();
+
+(function initPetroCursor(){
+  const petro = document.getElementById('petro');
+  if (reducedMotion || !matchMedia('(pointer:fine)').matches) return;
+  const R = 150;
+  let mtx=-3000, mty=-3000, mpx=-3000, mpy=-3000, intensity=0, lx=null, ly=null;
+  addEventListener('mousemove', (e) => {
+    mtx=e.clientX; mty=e.clientY;
+    if (lx!==null){ intensity = Math.min(1, intensity + Math.hypot(e.clientX-lx, e.clientY-ly)*0.011); }
+    lx=e.clientX; ly=e.clientY;
+  });
+  (function ptick(){
+    mpx += (mtx-mpx)*0.15; mpy += (mty-mpy)*0.15; intensity *= 0.955;
+    const m = 'radial-gradient(circle '+R+'px at '+mpx.toFixed(0)+'px '+mpy.toFixed(0)+'px, #000 0%, #000 28%, transparent 72%)';
+    petro.style.webkitMaskImage = m; petro.style.maskImage = m;
+    petro.style.opacity = (0.24*intensity).toFixed(3);
+    requestAnimationFrame(ptick);
+  })();
+})();
+
+/* ================================================================
+   7. UMBRAL — artefacto interactivo + entrada
+   ================================================================ */
+function initUmbral(){
+  const landing = document.getElementById('landing');
+  const cv = document.getElementById('landingCv');
+  document.body.classList.add('umbral');
+
+  const renderer = new THREE.WebGLRenderer({ canvas:cv, antialias:true, alpha:true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 50);
+  camera.position.set(0, 0.1, 3.4);
+
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+  const key = new THREE.DirectionalLight(0xffe2bc, 1.2);
+  key.position.set(2.5, 3, 2);
+  scene.add(key);
+  const rim = new THREE.PointLight(0xD4A843, 0, 12);   /* se enciende en modo foto */
+  rim.position.set(-2.5, 1.2, -2);
+  scene.add(rim);
+
+  const group = new THREE.Group();
+  scene.add(group);
+
+  /* el artefacto del umbral: primer objeto del manifiesto con modelo */
+  /* objeto que recibe al visitante: preferir uno marcado umbral:true en la
+     matriz; si no, el primero fotogramétrico; si no, el primero que haya */
+  const teaser = ASSETS.find(a => a.umbral)
+              || ASSETS.find(a => a.provenance === 'fotogrametria')
+              || ASSETS[0];
+  if (!teaser) return;   /* sin datos, no montar el teaser */
+  const meshes = [];
+  const wireMat = new THREE.MeshBasicMaterial({ wireframe:true, color:0xC17A4A, transparent:true, opacity:0.75 });
+  new GLTFLoader().load(teaser.model, (g) => {
+    const obj = g.scene;
+    const box = new THREE.Box3().setFromObject(obj);
+    const size = box.getSize(new THREE.Vector3()).length();
+    const center = box.getCenter(new THREE.Vector3());
+    obj.position.sub(center);
+    obj.scale.setScalar(2.1 / size);
+    obj.traverse(m => { if (m.isMesh) meshes.push([m, m.material]); });
+    group.add(obj);
+  });
+
+  /* modos: 'foto' = material real + luz dorada · 'reco' = wireframe terracota */
+  let sticky = null;
+  function setMode(mode){
+    meshes.forEach(([m, orig]) => { m.material = (mode === 'reco') ? wireMat : orig; });
+    rim.intensity = (mode === 'foto') ? 2.4 : 0;
+  }
+  document.querySelectorAll('.camino').forEach(bt => {
+    bt.addEventListener('pointerenter', () => setMode(bt.dataset.mode));
+    bt.addEventListener('pointerleave', () => setMode(sticky));
+    bt.addEventListener('click', () => {
+      sticky = (sticky === bt.dataset.mode) ? null : bt.dataset.mode;
+      document.querySelectorAll('.camino').forEach(x =>
+        x.setAttribute('aria-pressed', String(x.dataset.mode === sticky)));
+      setMode(sticky);
+    });
+  });
+
+  /* arrastre con inercia + rotación de reposo */
+  const IDLE = reducedMotion ? 0 : 0.0045;
+  let vx = IDLE, vy = 0, dragging = false, px = 0, py = 0;
+  cv.addEventListener('pointerdown', (e) => {
+    dragging = true; px = e.clientX; py = e.clientY;
+    cv.classList.add('grabbing');
+    cv.setPointerCapture(e.pointerId);
+  });
+  cv.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - px, dy = e.clientY - py;
+    group.rotation.y += dx * 0.008;
+    group.rotation.x += dy * 0.008;
+    vx = dx * 0.004; vy = dy * 0.004;
+    px = e.clientX; py = e.clientY;
+  });
+  const release = () => { dragging = false; cv.classList.remove('grabbing'); };
+  cv.addEventListener('pointerup', release);
+  cv.addEventListener('pointercancel', release);
+
+  function size(){
+    const r = cv.parentElement.getBoundingClientRect();
+    renderer.setSize(r.width, r.height, false);
+    camera.aspect = r.width / r.height;
+    camera.updateProjectionMatrix();
+  }
+  size();
+  new ResizeObserver(size).observe(cv.parentElement);
+
+  let running = true;
+  (function loop(){
+    if (!running) return;
+    requestAnimationFrame(loop);
+    if (!dragging){
+      vx += (IDLE - vx) * 0.02;          /* la inercia decae hacia la rotación de reposo */
+      vy *= 0.94;
+      group.rotation.y += vx;
+      group.rotation.x += vy;
+      group.rotation.x *= 0.985;         /* vuelve suavemente al horizonte */
+    }
+    renderer.render(scene, camera);
+  })();
+
+  /* entrada al archivo */
+  document.getElementById('enterBtn').addEventListener('click', () => {
+    landing.classList.add('gone');
+    document.body.classList.remove('umbral');
+    setTimeout(() => {
+      running = false;
+      landing.style.display = 'none';
+      renderer.dispose();
+    }, 950);
+  });
+}
+
+/* ================================================================
+   init — trae la matriz en vivo, luego renderiza
+   ================================================================ */
+async function fetchAssets(){
+  try {
+    const res = await fetch(ASSETS_URL, { cache:'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : (data.assets || []);
+    if (!list.length) throw new Error('assets.json vacío');
+    return list;
+  } catch (err) {
+    console.warn('[archivo] No se pudo leer assets.json en vivo (' + err.message +
+                 '). Usando modelos de prueba.');
+    return FALLBACK_ASSETS;
+  }
+}
+
+async function boot(){
+  renderHeader();
+  renderLanding();
+  ASSETS = await fetchAssets();
+  renderCats();
+  renderGrid();
+  initUmbral();          /* el umbral usa ASSETS, corre ya con datos */
+}
+
+boot();
+</script>
+</body>
+</html>
