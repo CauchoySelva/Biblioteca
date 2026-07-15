@@ -1149,8 +1149,8 @@ function initUmbral(){
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 50);
-  camera.position.set(0, 0.6, 3.4);
-  camera.lookAt(0, 0, 0);   // mira al centro: se ve un poco más la parte superior
+  camera.position.set(0, 1.05, 3.3);
+  camera.lookAt(0, 0, 0);   // roto la cámara hacia arriba; el objeto sigue centrado
 
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
