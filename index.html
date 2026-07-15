@@ -1168,7 +1168,11 @@ function initUmbral(){
   if (!teaser) return;   /* sin datos, no montar el teaser */
   const meshes = [];
   const wireMat = new THREE.MeshBasicMaterial({ wireframe:true, color:0xC17A4A, transparent:true, opacity:0.75 });
-  new GLTFLoader().load(teaser.model, (g) => {
+  const umbralLoader = new GLTFLoader();
+  const umbralDraco = new DRACOLoader();
+  umbralDraco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/');
+  umbralLoader.setDRACOLoader(umbralDraco);
+  umbralLoader.load(teaser.model, (g) => {
     const obj = g.scene;
     const box = new THREE.Box3().setFromObject(obj);
     const size = box.getSize(new THREE.Vector3()).length();
@@ -1177,6 +1181,8 @@ function initUmbral(){
     obj.scale.setScalar(2.1 / size);
     obj.traverse(m => { if (m.isMesh) meshes.push([m, m.material]); });
     group.add(obj);
+  }, undefined, (err) => {
+    console.error('[umbral] No se pudo cargar el modelo de bienvenida:', teaser.model, err);
   });
 
   /* modos: 'foto' = material real + luz dorada · 'reco' = wireframe terracota */
