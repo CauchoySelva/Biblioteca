@@ -886,12 +886,16 @@ class Viewer {
     this.scene.add(key);
     this.key = key;
 
-    const fill = new THREE.DirectionalLight(0xb9c8d8, 0.35);
+    const fill = new THREE.DirectionalLight(0xb9c8d8, 0.55);
     fill.position.set(-4, 2, -3);
     this.scene.add(fill);
 
+    // Luz hemisférica tenue: levanta las sombras más oscuras sin aplanar
+    const hemi = new THREE.HemisphereLight(0xf3e7cf, 0x2a1c10, 0.45);
+    this.scene.add(hemi);
+
     // Sombra de contacto
-    const shadowMat = new THREE.ShadowMaterial({ opacity: 0.34 });
+    const shadowMat = new THREE.ShadowMaterial({ opacity: 0.20 });
     this.ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), shadowMat);
     this.ground.rotation.x = -Math.PI / 2;
     this.ground.receiveShadow = true;
