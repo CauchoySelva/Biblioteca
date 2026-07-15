@@ -151,20 +151,22 @@
     .land-grid{
       grid-template-columns:1fr;
       grid-template-areas: "top" "stage" "mid" "bottom";
-      gap:10px; padding:14px 22px 22px;
+      gap:8px; padding:12px 22px calc(env(safe-area-inset-bottom, 0px) + 20px);
     }
     .land-copy-top{ align-self:auto; }
     .land-copy-mid{ align-self:auto; padding:0; }
     .land-copy-bottom{ align-self:auto; text-align:center; }
-    .land-stage{ height:36vh; }
+    .land-stage{ height:31vh; }
     .caminos{ grid-template-columns:1fr 1fr; }
-    .camino-desc{ min-height:0; margin-top:8px; font-size:13.5px; line-height:1.5; }
-    .land-copy .eyebrow{ margin-bottom:8px; }
-    .land-copy h1{ font-size:clamp(34px, 9vw, 48px); margin-bottom:8px; }
-    .land-lede{ font-size:15.5px; line-height:1.55; margin-bottom:0; }
-    .land-caminos-label{ font-size:17px; margin-bottom:8px; }
+    .camino-desc{ min-height:0; margin-top:7px; font-size:13.5px; line-height:1.5; }
+    .land-copy .eyebrow{ margin-bottom:7px; }
+    .land-copy h1{ font-size:clamp(34px, 9vw, 48px); margin-bottom:7px; }
+    .land-lede{ font-size:15px; line-height:1.5; margin-bottom:0; }
+    .land-caminos-label{ font-size:16px; margin-bottom:7px; }
     .land-note{ display:none; }
-    #enterBtn{ margin-top:4px; }
+    /* la pista se superpone sobre el visor (no ocupa alto propio) */
+    .land-hint{ position:absolute; bottom:2px; font-size:10px; }
+    #enterBtn{ margin-top:2px; padding:12px 40px; }
   }
 
   /* ---------- utility type ---------- */
