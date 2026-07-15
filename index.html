@@ -1003,7 +1003,7 @@ class Viewer {
 
         const fov = this.camera.fov * (Math.PI / 180);
         let dist = (maxDim / 2) / Math.tan(fov / 2);
-        dist *= 1.25;
+        dist *= 1.1;
         this.camera.position.set(dist * 0.8, targetY + dist * 0.52, dist);
         this.camera.near = maxDim / 100;
         this.camera.far = maxDim * 100;
