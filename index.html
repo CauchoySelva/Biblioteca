@@ -231,11 +231,29 @@
 
   /* ---------- grid ---------- */
   main{ max-width:1280px; margin:0 auto; padding:34px 32px 80px; }
-  .grid{
+  .grid{ display:block; }
+  .cards{
     display:grid;
     grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
     gap:22px;
   }
+  /* jerarquía del archivo: Clase → Sub-clase */
+  .clase-group{ margin-bottom:44px; }
+  .clase-title{
+    font-family:var(--display); font-weight:500; font-style:italic;
+    font-size:30px; color:var(--terra-hi);
+    margin:34px 0 6px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .clase-group .clase-title:first-child{ margin-top:6px; }
+  .subclase-title{
+    font-family:var(--body); font-weight:600;
+    font-size:12.5px; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--oliva);
+    margin:24px 0 14px;
+  }
+  .subclase-title + .cards, .clase-title + .cards{ margin-top:14px; }
   .card{
     text-align:left;
     background:var(--panel);
@@ -391,6 +409,29 @@
     height:1px; background:linear-gradient(90deg, var(--dorado), transparent 70%);
     opacity:.5; margin:28px 0 22px;
   }
+  /* ficha técnica (metadata) */
+  .ficha{ margin:0 0 6px; }
+  .ficha-row{ display:grid; grid-template-columns:112px 1fr; gap:12px; padding:7px 0; border-bottom:1px dotted var(--line-soft); }
+  .ficha-row dt{
+    font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--oliva); padding-top:2px;
+  }
+  .ficha-row dd{ margin:0; font-size:15px; color:var(--cream); line-height:1.5; }
+  .asoc-link{
+    display:inline-block; margin:0 6px 4px 0; padding:2px 9px;
+    font-size:13px; color:var(--terra-hi);
+    border:1px solid rgba(193,122,74,.4); border-radius:20px;
+    transition:border-color .2s, color .2s;
+  }
+  .asoc-link:hover{ border-color:var(--terra); color:var(--cream); }
+  .biblio{
+    margin-top:14px; font-size:13px; line-height:1.55; color:var(--faint);
+  }
+  .biblio span{
+    display:block; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--oliva); margin-bottom:4px;
+  }
+
   .ref-block h4{
     font-family:var(--body); font-weight:600;
     font-size:12px; letter-spacing:.2em; text-transform:uppercase;
@@ -528,7 +569,9 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
    Campos:
    id          : único, sin espacios
    catalog     : número de ficha (WA-<CAT>-###)
-   category    : personajes | criaturas | fauna | flora | arquitectura | vestimenta | herramientas | arte
+   category    : estructuras | artefactos | personajes | fauna | flora
+   clase       : ej. Indígena / No indígena / Humanos / No-humanos
+   subclase    : ej. Vivienda, Transporte, Guerra, Ceremonial...
    provenance  : 'reconstruccion' | 'fotogrametria'
    name/desc   : { es, en, ptbr }
    model       : URL del .glb
@@ -539,16 +582,20 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
                  { type:'video', src:'...mp4', caption:{...}, source:'...' }
    ================================================================ */
 
+/* Taxonomía (guía de Daniel): Categoría → Clase → Sub-clase → Objeto */
 const CATEGORIES = [
-  { key:'personajes',   code:'PER', label:{ es:'Personajes',   en:'Characters',   ptbr:'Personagens' } },
-  { key:'criaturas',    code:'CRI', label:{ es:'Criaturas',    en:'Creatures',    ptbr:'Criaturas' } },
-  { key:'fauna',        code:'FAU', label:{ es:'Fauna',        en:'Fauna',        ptbr:'Fauna' } },
-  { key:'flora',        code:'FLO', label:{ es:'Flora',        en:'Flora',        ptbr:'Flora' } },
-  { key:'arquitectura', code:'ARQ', label:{ es:'Arquitectura', en:'Architecture', ptbr:'Arquitetura' } },
-  { key:'vestimenta',   code:'VES', label:{ es:'Vestimenta',   en:'Clothing',     ptbr:'Vestimenta' } },
-  { key:'herramientas', code:'HER', label:{ es:'Herramientas', en:'Tools',        ptbr:'Ferramentas' } },
-  { key:'arte',         code:'ART', label:{ es:'Arte / Música', en:'Art / Music',   ptbr:'Arte / Música' } },
+  { key:'estructuras', code:'A', label:{ es:'Estructuras', en:'Structures', ptbr:'Estruturas' } },
+  { key:'artefactos',  code:'B', label:{ es:'Artefactos',  en:'Artifacts',  ptbr:'Artefatos' } },
+  { key:'personajes',  code:'C', label:{ es:'Personajes',  en:'Characters', ptbr:'Personagens' } },
+  { key:'fauna',       code:'D', label:{ es:'Fauna',       en:'Fauna',      ptbr:'Fauna' } },
+  { key:'flora',       code:'E', label:{ es:'Flora',       en:'Flora',      ptbr:'Flora' } },
 ];
+
+/* categorías antiguas → nuevas (para assets.json publicados antes del cambio) */
+const LEGACY_CATS = {
+  arquitectura:'estructuras', vestimenta:'artefactos', herramientas:'artefactos',
+  practicos:'artefactos', arte:'artefactos', criaturas:'personajes'
+};
 
 /* --- MODELOS DE PRUEBA (Khronos glTF samples) — reemplazar --- */
 const SAMPLE = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0';
@@ -569,6 +616,7 @@ const FALLBACK_ASSETS = [
     id:'prueba-personaje',
     catalog:'WA-PER-001',
     category:'personajes',
+    clase:'Humanos', subclase:'Indígenas',
     provenance:'reconstruccion',
     name:{ es:'Modelo de prueba — Personaje', en:'Test model — Character', ptbr:'Modelo de teste — Personagem' },
     desc:{
@@ -583,7 +631,8 @@ const FALLBACK_ASSETS = [
   {
     id:'prueba-casco',
     catalog:'WA-VES-001',
-    category:'vestimenta',
+    category:'artefactos',
+    clase:'Indígena', subclase:'Accesorios personales',
     provenance:'fotogrametria',
     name:{ es:'Modelo de prueba — Casco', en:'Test model — Helmet', ptbr:'Modelo de teste — Capacete' },
     desc:{
@@ -609,7 +658,8 @@ const FALLBACK_ASSETS = [
   {
     id:'prueba-zorro',
     catalog:'WA-PRA-001',
-    category:'herramientas',
+    category:'artefactos',
+    clase:'Indígena', subclase:'Subsistencia',
     provenance:'reconstruccion',
     name:{ es:'Modelo de prueba — Animado', en:'Test model — Animated', ptbr:'Modelo de teste — Animado' },
     desc:{
@@ -624,7 +674,8 @@ const FALLBACK_ASSETS = [
   {
     id:'prueba-pato',
     catalog:'WA-ART-001',
-    category:'arte',
+    category:'artefactos',
+    clase:'Indígena', subclase:'Ceremonial',
     provenance:'reconstruccion',
     name:{ es:'Modelo de prueba — Pato', en:'Test model — Duck', ptbr:'Modelo de teste — Pato' },
     desc:{
@@ -639,7 +690,8 @@ const FALLBACK_ASSETS = [
   {
     id:'prueba-linterna',
     catalog:'WA-ARQ-001',
-    category:'arquitectura',
+    category:'estructuras',
+    clase:'Indígena', subclase:'Vivienda',
     provenance:'fotogrametria',
     name:{ es:'Modelo de prueba — Linterna', en:'Test model — Lantern', ptbr:'Modelo de teste — Lanterna' },
     desc:{
@@ -681,6 +733,14 @@ const UI = {
   reconstruccion: { es:'Reconstrucción', en:'Reconstruction', ptbr:'Reconstrução' },
   fotogrametria:  { es:'Fotogrametría',  en:'Photogrammetry', ptbr:'Fotogrametria' },
   loadError:{ es:'No se pudo cargar el modelo. Verifica la URL en el manifiesto.', en:'Could not load the model. Check the URL in the manifest.', ptbr:'Não foi possível carregar o modelo. Verifique a URL no manifesto.' },
+  /* --- ficha técnica (metadata, guía de Daniel) --- */
+  lblOtrosNombres: { es:'Otros nombres', en:'Other names',  ptbr:'Outros nomes' },
+  lblMateriales:   { es:'Materiales',    en:'Materials',    ptbr:'Materiais' },
+  lblDimensiones:  { es:'Dimensiones',   en:'Dimensions',   ptbr:'Dimensões' },
+  lblPueblo:       { es:'Pueblo',        en:'People',       ptbr:'Povo' },
+  lblLugar:        { es:'Lugar',         en:'Place',        ptbr:'Lugar' },
+  lblAsociaciones: { es:'Asociaciones',  en:'Associations', ptbr:'Associações' },
+  lblBibliografia: { es:'Bibliografía',  en:'Bibliography', ptbr:'Bibliografia' },
   /* --- umbral (landing) --- */
   landEyebrow: { es:'Estudio La Selva · Vaupés, Colombia', en:'Estudio La Selva · Vaupés, Colombia', ptbr:'Estudio La Selva · Vaupés, Colômbia' },
   landTitle: {
@@ -743,34 +803,79 @@ function renderCats(){
   CATEGORIES.forEach(c => mk(c.key, t(c.label)));
 }
 
+function makeCard(a){
+  const cat = CATEGORIES.find(c => c.key === a.category);
+  const card = document.createElement('button');
+  card.className = 'card';
+  card.setAttribute('aria-label', t(a.name));
+  card.innerHTML = `
+    <div class="corner-b"></div>
+    <div class="thumb">${
+      a.thumb
+        ? `<img src="${a.thumb}" alt="" loading="lazy">`
+        : `<span class="mono">${t(a.name).charAt(0)}</span>`
+    }</div>
+    <div class="card-info">
+      <span class="catalog">${a.catalog}</span>
+      <h3>${t(a.name)}</h3>
+      <div class="card-meta">
+        <span class="eyebrow">${a.subclase || (cat ? t(cat.label) : '')}</span>
+        <span class="badge ${a.provenance === 'fotogrametria' ? 'foto' : 'reco'}">${t(UI[a.provenance])}</span>
+      </div>
+    </div>`;
+  card.addEventListener('click', () => openDetail(a));
+  return card;
+}
+
 function renderGrid(){
   $grid.innerHTML = '';
   const list = ASSETS.filter(a => activeCat === 'all' || a.category === activeCat);
   $empty.hidden = list.length > 0;
   $empty.textContent = t(UI.empty);
+  if (!list.length) return;
 
+  /* "Todos": grilla plana. Dentro de una categoría: agrupado Clase → Sub-clase */
+  if (activeCat === 'all'){
+    const flat = document.createElement('div');
+    flat.className = 'cards';
+    list.forEach(a => flat.appendChild(makeCard(a)));
+    $grid.appendChild(flat);
+    return;
+  }
+
+  /* estructura anidada: clase → subclase → items (conserva orden de la matriz) */
+  const SIN = '·';   /* marcador interno para "sin clase/subclase" */
+  const tree = new Map();
   list.forEach(a => {
-    const cat = CATEGORIES.find(c => c.key === a.category);
-    const card = document.createElement('button');
-    card.className = 'card';
-    card.setAttribute('aria-label', t(a.name));
-    card.innerHTML = `
-      <div class="corner-b"></div>
-      <div class="thumb">${
-        a.thumb
-          ? `<img src="${a.thumb}" alt="" loading="lazy">`
-          : `<span class="mono">${t(a.name).charAt(0)}</span>`
-      }</div>
-      <div class="card-info">
-        <span class="catalog">${a.catalog}</span>
-        <h3>${t(a.name)}</h3>
-        <div class="card-meta">
-          <span class="eyebrow">${cat ? t(cat.label) : ''}</span>
-          <span class="badge ${a.provenance === 'fotogrametria' ? 'foto' : 'reco'}">${t(UI[a.provenance])}</span>
-        </div>
-      </div>`;
-    card.addEventListener('click', () => openDetail(a));
-    $grid.appendChild(card);
+    const cl = (a.clase || SIN), sc = (a.subclase || SIN);
+    if (!tree.has(cl)) tree.set(cl, new Map());
+    const subs = tree.get(cl);
+    if (!subs.has(sc)) subs.set(sc, []);
+    subs.get(sc).push(a);
+  });
+
+  tree.forEach((subs, cl) => {
+    const sec = document.createElement('section');
+    sec.className = 'clase-group';
+    if (cl !== SIN){
+      const h = document.createElement('h2');
+      h.className = 'clase-title';
+      h.textContent = cl;
+      sec.appendChild(h);
+    }
+    subs.forEach((items, sc) => {
+      if (sc !== SIN){
+        const sh = document.createElement('h3');
+        sh.className = 'subclase-title';
+        sh.textContent = sc;
+        sec.appendChild(sh);
+      }
+      const wrap = document.createElement('div');
+      wrap.className = 'cards';
+      items.forEach(a => wrap.appendChild(makeCard(a)));
+      sec.appendChild(wrap);
+    });
+    $grid.appendChild(sec);
   });
 }
 
@@ -834,13 +939,54 @@ function renderPanel(a){
     mediaHTML = `<div class="rule"></div><div class="ref-block"><h4>${t(UI.refs)}</h4>${items}</div>`;
   }
 
+  const ruta = [cat ? t(cat.label) : null, a.clase, a.subclase].filter(Boolean).join(' › ');
+
+  /* --- ficha técnica (solo muestra los campos presentes) --- */
+  const matVal = a.materiales ? t(a.materiales) : '';
+  const fichaRows = [
+    [UI.lblOtrosNombres, a.otros_nombres],
+    [UI.lblMateriales,   matVal],
+    [UI.lblDimensiones,  a.dimensiones],
+    [UI.lblPueblo,       a.pueblo],
+    [UI.lblLugar,        a.lugar],
+  ].filter(r => r[1]);
+
+  let asocHTML = '';
+  if (a.asociaciones){
+    const links = a.asociaciones.split(/[,;]/).map(s => s.trim()).filter(Boolean).map(code => {
+      const rel = ASSETS.find(x => x.catalog === code || x.id === code);
+      return rel
+        ? `<button class="asoc-link" data-rel="${rel.id}">${rel.catalog} · ${t(rel.name)}</button>`
+        : `<span>${code}</span>`;
+    }).join(' ');
+    asocHTML = `<div class="ficha-row"><dt>${t(UI.lblAsociaciones)}</dt><dd>${links}</dd></div>`;
+  }
+
+  let fichaHTML = '';
+  if (fichaRows.length || asocHTML || a.bibliografia){
+    fichaHTML = `<div class="rule"></div><dl class="ficha">` +
+      fichaRows.map(([lbl, val]) =>
+        `<div class="ficha-row"><dt>${t(lbl)}</dt><dd>${val}</dd></div>`).join('') +
+      asocHTML + `</dl>` +
+      (a.bibliografia ? `<p class="biblio"><span>${t(UI.lblBibliografia)}</span> ${a.bibliografia}</p>` : '');
+  }
+
   $panel.innerHTML = `
     <span class="catalog">${a.catalog}</span>
     <h2>${t(a.name)}</h2>
-    <div class="cat-label">${cat ? t(cat.label) : ''}</div>
+    <div class="cat-label">${ruta}</div>
     <span class="badge ${a.provenance === 'fotogrametria' ? 'foto' : 'reco'}">${t(UI[a.provenance])}</span>
     <div class="desc">${t(a.desc)}</div>
+    ${fichaHTML}
     ${mediaHTML}`;
+
+  /* asociaciones: navegar al objeto relacionado */
+  $panel.querySelectorAll('.asoc-link').forEach(b => {
+    b.addEventListener('click', () => {
+      const rel = ASSETS.find(x => x.id === b.dataset.rel);
+      if (rel) openDetail(rel);
+    });
+  });
 }
 
 function openDetail(a){
@@ -1308,6 +1454,8 @@ async function fetchAssets(){
     const data = await res.json();
     const list = Array.isArray(data) ? data : (data.assets || []);
     if (!list.length) throw new Error('assets.json vacío');
+    /* normalizar: categorías antiguas → taxonomía nueva */
+    list.forEach(a => { if (LEGACY_CATS[a.category]) a.category = LEGACY_CATS[a.category]; });
     return list;
   } catch (err) {
     console.warn('[archivo] No se pudo leer assets.json en vivo (' + err.message +
