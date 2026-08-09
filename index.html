@@ -64,7 +64,7 @@
   /* ---------- umbral (landing) ---------- */
   body.umbral{ overflow:hidden; }
   #landing{
-    position:fixed; inset:0; z-index:10;
+    position:fixed; inset:0; z-index:12;   /* sobre la barra de búsqueda/filtros (z-10), bajo la atmósfera (z-19+) */
     background: radial-gradient(ellipse 90% 90% at 50% 40%, var(--bg-2) 0%, var(--bg) 72%);
     display:flex; align-items:center; justify-content:center;
     overflow-y:auto; overscroll-behavior:contain;
@@ -231,6 +231,68 @@
 
   /* ---------- grid ---------- */
   main{ max-width:1280px; margin:0 auto; padding:34px 32px 80px; }
+  /* ---------- búsqueda + filtros facetados ---------- */
+  .toolbar{
+    max-width:1280px; margin:0 auto; padding:18px 32px 0;
+    display:flex; gap:16px; align-items:center; flex-wrap:wrap;
+    position:relative; z-index:10;   /* sobre la grilla (z-6): el panel de filtros queda encima de las tarjetas */
+  }
+  #searchBox{
+    flex:1 1 260px; max-width:420px;
+    background:rgba(21,16,10,.6); color:var(--cream);
+    border:1px solid var(--line-soft); border-radius:2px;
+    padding:10px 14px; font-family:var(--body); font-size:15px;
+    transition:border-color .2s;
+  }
+  #searchBox::placeholder{ color:var(--faint); font-style:italic; }
+  #searchBox:focus{ outline:none; border-color:var(--terra); }
+  .filters{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .facet{ position:relative; }
+  .facet-toggle{
+    display:flex; align-items:center; gap:7px;
+    font-size:11.5px; letter-spacing:.16em; text-transform:uppercase;
+    padding:8px 14px; border-radius:2px;
+    border:1px solid var(--line-soft); color:var(--muted);
+    background:rgba(21,16,10,.6);
+    transition:color .2s, border-color .2s;
+  }
+  .facet-toggle:hover{ color:var(--cream); border-color:var(--line); }
+  .facet-toggle[aria-expanded="true"]{ color:var(--cream); border-color:var(--terra); }
+  .facet-toggle.has-sel{ color:var(--dorado-hi); border-color:var(--dorado); }
+  .facet-toggle .caret{ font-size:9px; opacity:.7; }
+  .facet-count{
+    font-size:10px; padding:1px 7px; border-radius:20px;
+    background:var(--dorado); color:#1a1206; letter-spacing:0;
+  }
+  .facet-pop{
+    position:absolute; top:calc(100% + 8px); left:0; z-index:30;
+    display:flex; flex-wrap:wrap; gap:7px; align-content:flex-start;
+    width:max-content; max-width:min(340px, 82vw); max-height:280px; overflow-y:auto;
+    padding:14px; border:1px solid var(--line);
+    background:rgba(21,16,10,.92); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  }
+  .chip-clear{ color:var(--terra-hi); border-style:dashed; }
+  .pop-group{ width:100%; }
+  .pop-group + .pop-group{ margin-top:10px; padding-top:10px; border-top:1px dotted var(--line-soft); }
+  .pop-head{
+    display:block; font-size:9.5px; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--oliva); margin-bottom:7px;
+  }
+  .pop-chips{ display:flex; flex-wrap:wrap; gap:7px; }
+  .chip{
+    font-size:11.5px; letter-spacing:.14em; text-transform:uppercase;
+    padding:6px 13px; border-radius:20px;
+    border:1px solid var(--line); color:var(--muted);
+    background:rgba(21,16,10,.5);
+    transition:color .2s, border-color .2s;
+  }
+  .chip:hover{ color:var(--cream); }
+  .chip[aria-pressed="true"]{ color:var(--dorado-hi); border-color:var(--dorado); }
+  @media (max-width:900px){
+    .toolbar{ padding:14px 20px 0; }
+    #searchBox{ max-width:none; }
+  }
+
   .grid{ display:block; }
   .cards{
     display:grid;
@@ -318,7 +380,7 @@
   .detail.open{ display:block; }
   @keyframes fadeIn{ from{opacity:0} to{opacity:1} }
   /* al ver un objeto, ocultamos la grilla para que solo se vea la atmósfera detrás */
-  body.viewing header, body.viewing nav.cats, body.viewing main{
+  body.viewing header, body.viewing nav.cats, body.viewing .toolbar, body.viewing main{
     opacity:0; transition:opacity .3s ease; pointer-events:none;
   }
 
@@ -409,6 +471,18 @@
     height:1px; background:linear-gradient(90deg, var(--dorado), transparent 70%);
     opacity:.5; margin:28px 0 22px;
   }
+  /* ruta clicable en la ficha */
+  .ruta-link{
+    font-family:inherit; font-size:inherit; letter-spacing:inherit; text-transform:inherit;
+    color:var(--oliva); padding:0;
+    border-bottom:1px dotted rgba(193,122,74,.5);
+    transition:color .2s, border-color .2s;
+  }
+  .ruta-link:hover{ color:var(--terra-hi); border-bottom-color:var(--terra); }
+  .ruta-sep{ color:var(--faint); }
+  .badge-link{ cursor:pointer; transition:border-color .2s, color .2s; }
+  .badge-link:hover{ border-color:var(--terra-hi); color:var(--cream); }
+
   /* ficha técnica (metadata) */
   .ficha{ margin:0 0 6px; }
   .ficha-row{ display:grid; grid-template-columns:112px 1fr; gap:12px; padding:7px 0; border-bottom:1px dotted var(--line-soft); }
@@ -523,6 +597,10 @@
 </header>
 
 <nav class="cats" id="cats" aria-label="Categorías"></nav>
+<div class="toolbar">
+  <input type="search" id="searchBox" autocomplete="off">
+  <div class="filters" id="filters"></div>
+</div>
 
 <main>
   <div class="grid" id="grid"></div>
@@ -741,6 +819,12 @@ const UI = {
   lblLugar:        { es:'Lugar',         en:'Place',        ptbr:'Lugar' },
   lblAsociaciones: { es:'Asociaciones',  en:'Associations', ptbr:'Associações' },
   lblBibliografia: { es:'Bibliografía',  en:'Bibliography', ptbr:'Bibliografia' },
+  lblTecnica: { es:'Técnica', en:'Technique', ptbr:'Técnica' },
+  lblClase:    { es:'Clase',     en:'Class',    ptbr:'Classe' },
+  lblSubclase: { es:'Sub-clase', en:'Subclass', ptbr:'Subclasse' },
+  lblLimpiar: { es:'Limpiar', en:'Clear', ptbr:'Limpar' },
+  searchPh:  { es:'Buscar en el archivo — nombre, pueblo, material…', en:'Search the archive — name, people, material…', ptbr:'Buscar no arquivo — nome, povo, material…' },
+  noResults: { es:'Ningún objeto coincide con la búsqueda.', en:'No objects match the search.', ptbr:'Nenhum objeto corresponde à busca.' },
   /* --- umbral (landing) --- */
   landEyebrow: { es:'Estudio La Selva · Vaupés, Colombia', en:'Estudio La Selva · Vaupés, Colombia', ptbr:'Estudio La Selva · Vaupés, Colômbia' },
   landTitle: {
@@ -790,17 +874,202 @@ const $cats  = document.getElementById('cats');
 const $empty = document.getElementById('empty');
 let activeCat = 'all';
 
+/* ---------- búsqueda + facetas ---------- */
+let query = '';
+const activeFacets = {};   /* { provenance:Set, pueblo:Set } */
+
+/* normaliza para buscar: minúsculas y sin tildes (ü→u, á→a) */
+const norm = s => (s || '').toString().toLowerCase()
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const stripHtml = s => (s || '').replace(/<[^>]*>/g, ' ');
+
+/* índice de texto por objeto: nombres (3 idiomas), nombres indígenas,
+   materiales, pueblo, lugar, descripciones, catálogo, clase/subclase */
+function indexAssets(){
+  ASSETS.forEach(a => {
+    a.__search = norm([
+      t(a.name) , a.name?.es, a.name?.en, a.name?.ptbr,
+      a.otros_nombres, a.catalog, a.clase, a.subclase, a.pueblo, a.lugar,
+      a.materiales?.es, a.materiales?.en, a.materiales?.ptbr,
+      stripHtml(a.desc?.es), stripHtml(a.desc?.en), stripHtml(a.desc?.ptbr)
+    ].filter(Boolean).join(' '));
+  });
+}
+
+/* facetas: cada una aparece sola cuando tiene ≥2 valores distintos en el catálogo.
+   values() devuelve lista (materiales es multi-valor: "Madera, fibra" → 2 chips).
+   lugar es jerárquico ("Colombia>Vaupés>Río Papurí") → se filtra por el nivel más específico. */
+const splitList = s => (s || '').split(/[,;]/).map(x => x.trim()).filter(Boolean);
+const FACETS = [
+  { key:'provenance', title:() => t(UI.lblTecnica),    values:a => [a.provenance].filter(Boolean), label:v => t(UI[v]) || v },
+  { key:'clase',      title:() => t(UI.lblClase),       values:a => [a.clase].filter(Boolean),      label:v => v, groupByCat:true },
+  { key:'subclase',   title:() => t(UI.lblSubclase),    values:a => [a.subclase].filter(Boolean),   label:v => v, groupByCat:true },
+  { key:'pueblo',     title:() => t(UI.lblPueblo),     values:a => splitList(a.pueblo),            label:v => v },
+  { key:'materiales', title:() => t(UI.lblMateriales), values:a => splitList(t(a.materiales)),     label:v => v },
+  { key:'lugar',      title:() => t(UI.lblLugar),      values:a => {
+      const partes = (a.lugar || '').split('>').map(x => x.trim()).filter(Boolean);
+      return partes.length ? [partes[partes.length - 1]] : [];
+    }, label:v => v },
+];
+
+
+function applyFilters(){
+  return ASSETS.filter(a => {
+    if (query && !a.__search.includes(query)) return false;
+    if (!query && activeCat !== 'all' && a.category !== activeCat) return false;
+    for (const f of FACETS){
+      const sel = activeFacets[f.key];
+      if (sel && sel.size){
+        const vals = f.values(a);
+        if (!vals.some(v => sel.has(v))) return false;
+      }
+    }
+    return true;
+  });
+}
+
+let openFacet = null;   /* clave de la faceta desplegada (una a la vez) */
+
+function renderFilters(){
+  const $f = document.getElementById('filters');
+  $f.innerHTML = '';
+
+  /* CONTEXTO: dentro de una pestaña, los filtros solo ofrecen valores de esa
+     categoría; en "Todos" o buscando, ofrecen todo el archivo */
+  const global = query || activeCat === 'all';
+  const ctx = global ? ASSETS : ASSETS.filter(a => a.category === activeCat);
+
+  /* poda: selecciones que ya no existen en el contexto actual se sueltan
+     (evita filtros fantasma al cambiar de pestaña) */
+  FACETS.forEach(f => {
+    const sel = activeFacets[f.key];
+    if (!sel || !sel.size) return;
+    const avail = new Set();
+    ctx.forEach(a => f.values(a).forEach(v => avail.add(v)));
+    [...sel].forEach(v => { if (!avail.has(v)) sel.delete(v); });
+  });
+
+  FACETS.forEach(f => {
+    /* frecuencia de cada valor en el contexto */
+    const freq = new Map();
+    ctx.forEach(a => f.values(a).forEach(v => freq.set(v, (freq.get(v) || 0) + 1)));
+    if (freq.size < 2) return;   /* faceta sin variedad en este contexto: oculta */
+
+    const orden = (x, y) => (freq.get(y) - freq.get(x)) || x.localeCompare(y);
+    const sel = activeFacets[f.key];
+    const nSel = sel ? sel.size : 0;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'facet';
+
+    /* botón desplegable: "Materiales ▾" (+ contador si hay selección) */
+    const tg = document.createElement('button');
+    tg.className = 'facet-toggle';
+    tg.setAttribute('aria-expanded', String(openFacet === f.key));
+    tg.innerHTML = `${f.title()}${nSel ? `<span class="facet-count">${nSel}</span>` : ''}<span class="caret">▾</span>`;
+    if (nSel) tg.classList.add('has-sel');
+    tg.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openFacet = (openFacet === f.key) ? null : f.key;
+      renderFilters();
+    });
+    wrap.appendChild(tg);
+
+    /* panel con los chips */
+    if (openFacet === f.key){
+      const pop = document.createElement('div');
+      pop.className = 'facet-pop';
+      pop.addEventListener('click', e => e.stopPropagation());
+
+      const mkChip = (v) => {
+        const b = document.createElement('button');
+        b.className = 'chip';
+        b.textContent = `${f.label(v)} · ${freq.get(v)}`;
+        b.setAttribute('aria-pressed', String(!!sel?.has(v)));
+        b.addEventListener('click', () => {
+          activeFacets[f.key] = activeFacets[f.key] || new Set();
+          activeFacets[f.key].has(v) ? activeFacets[f.key].delete(v) : activeFacets[f.key].add(v);
+          renderFilters(); renderGrid();
+        });
+        return b;
+      };
+
+      /* en "Todos", clase/sub-clase agrupan sus valores por categoría —
+         los ejes de Daniel (Indígena/No indígena vs Humanos/No-humanos)
+         no se mezclan en una sola lista */
+      if (f.groupByCat && global){
+        const sig = new Map();   /* firma de categorías → {cats, vals} */
+        [...freq.keys()].forEach(v => {
+          const cats = CATEGORIES.filter(c =>
+            ctx.some(a => a.category === c.key && f.values(a).includes(v)))
+            .map(c => c.key);
+          const k = cats.join('+');
+          if (!sig.has(k)) sig.set(k, { cats, vals: [] });
+          sig.get(k).vals.push(v);
+        });
+        sig.forEach(g => {
+          const box = document.createElement('div');
+          box.className = 'pop-group';
+          if (sig.size > 1){
+            const h = document.createElement('span');
+            h.className = 'pop-head';
+            h.textContent = g.cats
+              .map(k => t(CATEGORIES.find(c => c.key === k).label)).join(' · ');
+            box.appendChild(h);
+          }
+          const row = document.createElement('div');
+          row.className = 'pop-chips';
+          g.vals.sort(orden).forEach(v => row.appendChild(mkChip(v)));
+          box.appendChild(row);
+          pop.appendChild(box);
+        });
+      } else {
+        [...freq.keys()].sort(orden).forEach(v => pop.appendChild(mkChip(v)));
+      }
+
+      if (nSel){
+        const clr = document.createElement('button');
+        clr.className = 'chip chip-clear';
+        clr.textContent = t(UI.lblLimpiar);
+        clr.addEventListener('click', () => {
+          activeFacets[f.key].clear();
+          renderFilters(); renderGrid();
+        });
+        pop.appendChild(clr);
+      }
+      wrap.appendChild(pop);
+    }
+    $f.appendChild(wrap);
+  });
+}
+
+const $searchBox = document.getElementById('searchBox');
+$searchBox.addEventListener('input', () => {
+  query = norm($searchBox.value.trim());
+  renderCats(); renderFilters(); renderGrid();
+});
+
+/* clic fuera: cierra el desplegable de filtros abierto */
+document.addEventListener('click', () => {
+  if (openFacet){ openFacet = null; renderFilters(); }
+});
+
 function renderCats(){
   $cats.innerHTML = '';
   const mk = (key, label) => {
     const b = document.createElement('button');
     b.textContent = label;
     b.setAttribute('aria-pressed', String(activeCat === key));
-    b.addEventListener('click', () => { activeCat = key; renderCats(); renderGrid(); });
+    b.addEventListener('click', () => { activeCat = key; renderCats(); renderFilters(); renderGrid(); });
     $cats.appendChild(b);
   };
   mk('all', t(UI.all));
-  CATEGORIES.forEach(c => mk(c.key, t(c.label)));
+  /* pestañas vacías ocultas: aparecen solas cuando llega su primer objeto */
+  CATEGORIES.forEach(c => {
+    if (ASSETS.some(a => a.category === c.key)) mk(c.key, t(c.label));
+  });
+  /* si la pestaña activa quedó sin objetos (o hay búsqueda global), volver a Todos */
+  if (activeCat !== 'all' && !ASSETS.some(a => a.category === activeCat)) activeCat = 'all';
 }
 
 function makeCard(a){
@@ -829,13 +1098,13 @@ function makeCard(a){
 
 function renderGrid(){
   $grid.innerHTML = '';
-  const list = ASSETS.filter(a => activeCat === 'all' || a.category === activeCat);
+  const list = applyFilters();
   $empty.hidden = list.length > 0;
-  $empty.textContent = t(UI.empty);
+  $empty.textContent = query ? t(UI.noResults) : t(UI.empty);
   if (!list.length) return;
 
-  /* "Todos": grilla plana. Dentro de una categoría: agrupado Clase → Sub-clase */
-  if (activeCat === 'all'){
+  /* Búsqueda o "Todos": grilla plana global. Dentro de una categoría: agrupado Clase → Sub-clase */
+  if (query || activeCat === 'all'){
     const flat = document.createElement('div');
     flat.className = 'cards';
     list.forEach(a => flat.appendChild(makeCard(a)));
@@ -886,6 +1155,7 @@ function renderHeader(){
   document.querySelector('#backBtn [data-ui="back"]').textContent = t(UI.back);
   document.getElementById('hint').textContent = t(UI.hint);
   document.getElementById('loaderText').textContent = t(UI.loading);
+  document.getElementById('searchBox').placeholder = t(UI.searchPh);
 }
 
 function renderLanding(){
@@ -901,7 +1171,8 @@ document.querySelectorAll('.lang-toggle button').forEach(b => {
     lang = b.dataset.lang;
     document.querySelectorAll('.lang-toggle button')
       .forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-    renderHeader(); renderCats(); renderGrid(); renderLanding();
+    Object.keys(activeFacets).forEach(k => activeFacets[k].clear());
+    renderHeader(); renderCats(); renderFilters(); renderGrid(); renderLanding();
     if (currentAsset) renderPanel(currentAsset);
   });
 });
@@ -939,7 +1210,12 @@ function renderPanel(a){
     mediaHTML = `<div class="rule"></div><div class="ref-block"><h4>${t(UI.refs)}</h4>${items}</div>`;
   }
 
-  const ruta = [cat ? t(cat.label) : null, a.clase, a.subclase].filter(Boolean).join(' › ');
+  /* ruta clicable: categoría → pestaña; clase/subclase → filtro de faceta */
+  const rutaHTML = [
+    cat        ? `<button class="ruta-link" data-nav="cat">${t(cat.label)}</button>` : null,
+    a.clase    ? `<button class="ruta-link" data-nav="clase">${a.clase}</button>` : null,
+    a.subclase ? `<button class="ruta-link" data-nav="subclase">${a.subclase}</button>` : null,
+  ].filter(Boolean).join('<span class="ruta-sep"> › </span>');
 
   /* --- ficha técnica (solo muestra los campos presentes) --- */
   const matVal = a.materiales ? t(a.materiales) : '';
@@ -974,11 +1250,34 @@ function renderPanel(a){
   $panel.innerHTML = `
     <span class="catalog">${a.catalog}</span>
     <h2>${t(a.name)}</h2>
-    <div class="cat-label">${ruta}</div>
-    <span class="badge ${a.provenance === 'fotogrametria' ? 'foto' : 'reco'}">${t(UI[a.provenance])}</span>
+    <div class="cat-label">${rutaHTML}</div>
+    <button class="badge badge-link ${a.provenance === 'fotogrametria' ? 'foto' : 'reco'}" data-nav="provenance">${t(UI[a.provenance])}</button>
     <div class="desc">${t(a.desc)}</div>
     ${fichaHTML}
     ${mediaHTML}`;
+
+  /* ruta e insignia: cerrar la ficha y abrir la biblioteca ya filtrada */
+  function navFiltered(fn){
+    query = ''; $searchBox.value = '';
+    fn();
+    closeDetail();
+    renderCats(); renderFilters(); renderGrid();
+    window.scrollTo({ top: 0 });
+  }
+  $panel.querySelectorAll('[data-nav]').forEach(b => {
+    b.addEventListener('click', () => {
+      const kind = b.dataset.nav;
+      if (kind === 'cat'){
+        navFiltered(() => { activeCat = a.category; });
+      } else if (kind === 'clase'){
+        navFiltered(() => { activeCat = 'all'; activeFacets.clase = new Set([a.clase]); });
+      } else if (kind === 'subclase'){
+        navFiltered(() => { activeCat = 'all'; activeFacets.subclase = new Set([a.subclase]); });
+      } else if (kind === 'provenance'){
+        navFiltered(() => { activeCat = 'all'; activeFacets.provenance = new Set([a.provenance]); });
+      }
+    });
+  });
 
   /* asociaciones: navegar al objeto relacionado */
   $panel.querySelectorAll('.asoc-link').forEach(b => {
@@ -1468,7 +1767,9 @@ async function boot(){
   renderHeader();
   renderLanding();
   ASSETS = await fetchAssets();
+  indexAssets();
   renderCats();
+  renderFilters();
   renderGrid();
   initUmbral();          /* el umbral usa ASSETS, corre ya con datos */
 }
