@@ -38,6 +38,17 @@
   }
   button{ font-family:inherit; cursor:pointer; background:none; border:none; color:inherit; }
   button:focus-visible, a:focus-visible{ outline:2px solid var(--dorado); outline-offset:3px; }
+
+  /* ---------- scrollbars al tono de la página ---------- */
+  *{ scrollbar-width:thin; scrollbar-color:var(--line) var(--bg); }   /* Firefox */
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-track{ background:var(--bg); }
+  ::-webkit-scrollbar-thumb{
+    background:var(--line); border-radius:6px;
+    border:2px solid var(--bg);   /* aire alrededor del pulgar */
+  }
+  ::-webkit-scrollbar-thumb:hover{ background:var(--oliva); }
+  ::-webkit-scrollbar-corner{ background:var(--bg); }
   img{ max-width:100%; display:block; }
 
   /* ---------- atmósfera (del deck F&F) ---------- */
@@ -906,10 +917,13 @@ const FACETS = [
   { key:'subclase',   title:() => t(UI.lblSubclase),    values:a => [a.subclase].filter(Boolean),   label:v => v, groupByCat:true },
   { key:'pueblo',     title:() => t(UI.lblPueblo),     values:a => splitList(a.pueblo),            label:v => v },
   { key:'materiales', title:() => t(UI.lblMateriales), values:a => splitList(t(a.materiales)),     label:v => v },
-  { key:'lugar',      title:() => t(UI.lblLugar),      values:a => {
-      const partes = (a.lugar || '').split('>').map(x => x.trim()).filter(Boolean);
-      return partes.length ? [partes[partes.length - 1]] : [];
-    }, label:v => v },
+  { key:'lugar',      title:() => t(UI.lblLugar),      values:a =>
+      /* multi-valor con ';' (la coma puede vivir dentro del nombre);
+         '>' es jerarquía dentro de cada lugar → se filtra por el nivel más específico */
+      (a.lugar || '').split(';').map(s => s.trim()).filter(Boolean).map(l => {
+        const partes = l.split('>').map(x => x.trim()).filter(Boolean);
+        return partes[partes.length - 1];
+      }).filter(Boolean), label:v => v },
 ];
 
 
@@ -1224,7 +1238,8 @@ function renderPanel(a){
     [UI.lblMateriales,   matVal],
     [UI.lblDimensiones,  a.dimensiones],
     [UI.lblPueblo,       a.pueblo],
-    [UI.lblLugar,        a.lugar],
+    [UI.lblLugar,        (a.lugar || '').split(';').map(s => s.trim()).filter(Boolean)
+                           .map(l => l.split('>').map(x => x.trim()).join(' › ')).join('  ·  ')],
   ].filter(r => r[1]);
 
   let asocHTML = '';
