@@ -491,6 +491,13 @@
   }
   .ruta-link:hover{ color:var(--terra-hi); border-bottom-color:var(--terra); }
   .ruta-sep{ color:var(--faint); }
+  .meta-link{
+    font-family:inherit; font-size:inherit; color:var(--cream);
+    padding:0; text-align:left;
+    border-bottom:1px dotted rgba(193,122,74,.45);
+    transition:color .2s, border-color .2s;
+  }
+  .meta-link:hover{ color:var(--terra-hi); border-bottom-color:var(--terra); }
   .badge-link{ cursor:pointer; transition:border-color .2s, color .2s; }
   .badge-link:hover{ border-color:var(--terra-hi); color:var(--cream); }
 
@@ -1233,13 +1240,24 @@ function renderPanel(a){
 
   /* --- ficha técnica (solo muestra los campos presentes) --- */
   const matVal = a.materiales ? t(a.materiales) : '';
+  /* materiales, pueblo y lugar: cada valor es un enlace que abre la
+     biblioteca filtrada por él (misma mecánica que la ruta) */
+  const escv = s => String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  const facetLinks = (raw, facetKey) => splitList(raw).map(v =>
+    `<button class="meta-link" data-facet="${facetKey}" data-val="${escv(v)}">${escv(v)}</button>`
+  ).join(' · ');
+  const lugarLinks = (a.lugar || '').split(';').map(s => s.trim()).filter(Boolean).map(l => {
+    const partes = l.split('>').map(x => x.trim()).filter(Boolean);
+    const chip = partes[partes.length - 1];
+    return `<button class="meta-link" data-facet="lugar" data-val="${escv(chip)}">${escv(partes.join(' › '))}</button>`;
+  }).join('  ·  ');
+
   const fichaRows = [
-    [UI.lblOtrosNombres, a.otros_nombres],
-    [UI.lblMateriales,   matVal],
-    [UI.lblDimensiones,  a.dimensiones],
-    [UI.lblPueblo,       a.pueblo],
-    [UI.lblLugar,        (a.lugar || '').split(';').map(s => s.trim()).filter(Boolean)
-                           .map(l => l.split('>').map(x => x.trim()).join(' › ')).join('  ·  ')],
+    [UI.lblOtrosNombres, escv(a.otros_nombres || '')],
+    [UI.lblMateriales,   facetLinks(matVal, 'materiales')],
+    [UI.lblDimensiones,  escv(a.dimensiones || '')],
+    [UI.lblPueblo,       facetLinks(a.pueblo, 'pueblo')],
+    [UI.lblLugar,        lugarLinks],
   ].filter(r => r[1]);
 
   let asocHTML = '';
@@ -1291,6 +1309,12 @@ function renderPanel(a){
       } else if (kind === 'provenance'){
         navFiltered(() => { activeCat = 'all'; activeFacets.provenance = new Set([a.provenance]); });
       }
+    });
+  });
+  $panel.querySelectorAll('.meta-link').forEach(b => {
+    b.addEventListener('click', () => {
+      const key = b.dataset.facet, val = b.dataset.val;
+      navFiltered(() => { activeCat = 'all'; activeFacets[key] = new Set([val]); });
     });
   });
 
