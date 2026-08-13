@@ -282,7 +282,24 @@
     padding:14px; border:1px solid var(--line);
     background:rgba(21,16,10,.92); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
   }
-  .chip-clear{ color:var(--terra-hi); border-style:dashed; }
+  /* limpiar de cada menú: rectangular, en terra, con × y en su propia fila —
+     inconfundible frente a las píldoras doradas de selección */
+  .chip-clear{
+    flex-basis:100%;
+    color:var(--terra-hi); border:1px solid rgba(193,122,74,.55); border-radius:2px;
+    background:rgba(193,122,74,.08);
+  }
+  .chip-clear:hover{ color:var(--cream); border-color:var(--terra); background:rgba(193,122,74,.16); }
+  /* limpiar TODO: vive junto a los menús de filtro, mismo porte, acción en terra */
+  .clear-all{
+    display:flex; align-items:center; gap:7px;
+    font-size:11.5px; letter-spacing:.16em; text-transform:uppercase;
+    padding:8px 14px; border-radius:2px;
+    color:var(--terra-hi); border:1px solid rgba(193,122,74,.55);
+    background:rgba(193,122,74,.08);
+    transition:color .2s, border-color .2s, background .2s;
+  }
+  .clear-all:hover{ color:var(--cream); border-color:var(--terra); background:rgba(193,122,74,.16); }
   .pop-group{ width:100%; }
   .pop-group + .pop-group{ margin-top:10px; padding-top:10px; border-top:1px dotted var(--line-soft); }
   .pop-head{
@@ -485,19 +502,21 @@
   /* ruta clicable en la ficha */
   .ruta-link{
     font-family:inherit; font-size:inherit; letter-spacing:inherit; text-transform:inherit;
-    color:var(--oliva); padding:0;
-    border-bottom:1px dotted rgba(193,122,74,.5);
-    transition:color .2s, border-color .2s;
+    color:var(--oliva); padding:3px 11px;
+    border:1px solid rgba(155,160,110,.45); border-radius:20px;
+    background:rgba(155,160,110,.07);
+    transition:color .2s, border-color .2s, background .2s;
   }
-  .ruta-link:hover{ color:var(--terra-hi); border-bottom-color:var(--terra); }
+  .ruta-link:hover{ color:var(--terra-hi); border-color:var(--terra); background:rgba(193,122,74,.1); }
   .ruta-sep{ color:var(--faint); }
   .meta-link{
-    font-family:inherit; font-size:inherit; color:var(--cream);
-    padding:0; text-align:left;
-    border-bottom:1px dotted rgba(193,122,74,.45);
-    transition:color .2s, border-color .2s;
+    display:inline-block; margin:0 5px 5px 0; padding:3px 11px;
+    font-family:inherit; font-size:13.5px; color:var(--cream); text-align:left;
+    border:1px solid rgba(193,122,74,.4); border-radius:20px;
+    background:rgba(193,122,74,.07);
+    transition:color .2s, border-color .2s, background .2s;
   }
-  .meta-link:hover{ color:var(--terra-hi); border-bottom-color:var(--terra); }
+  .meta-link:hover{ color:var(--terra-hi); border-color:var(--terra); background:rgba(193,122,74,.13); }
   .badge-link{ cursor:pointer; transition:border-color .2s, color .2s; }
   .badge-link:hover{ border-color:var(--terra-hi); color:var(--cream); }
 
@@ -516,6 +535,34 @@
     transition:border-color .2s, color .2s;
   }
   .asoc-link:hover{ border-color:var(--terra); color:var(--cream); }
+  /* objetos relacionados: franja de tarjetas con thumbnail al pie de la ficha */
+  .rel-block h4{
+    font-family:var(--body); font-weight:600;
+    font-size:12px; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--oliva); margin-bottom:14px;
+  }
+  .rel-row{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(118px, 1fr)); gap:10px;
+  }
+  .rel-card{
+    text-align:left; padding:0 0 9px; overflow:hidden;
+    border:1px solid var(--line-soft); border-radius:4px;
+    background:rgba(21,16,10,.5);
+    transition:border-color .25s, transform .25s;
+  }
+  .rel-card:hover{ border-color:var(--terra); transform:translateY(-3px); }
+  .rel-card img, .rel-ph{
+    display:block; width:100%; aspect-ratio:1/1; object-fit:cover;
+    background:#120C07; margin-bottom:8px;
+  }
+  .rel-name{
+    display:block; font-family:var(--display); font-size:15.5px;
+    color:var(--cream); line-height:1.15; padding:0 9px;
+  }
+  .rel-cat{
+    display:block; font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--faint); padding:3px 9px 0;
+  }
   .biblio{
     margin-top:14px; font-size:13px; line-height:1.55; color:var(--faint);
   }
@@ -841,6 +888,7 @@ const UI = {
   lblClase:    { es:'Clase',     en:'Class',    ptbr:'Classe' },
   lblSubclase: { es:'Sub-clase', en:'Subclass', ptbr:'Subclasse' },
   lblLimpiar: { es:'Limpiar', en:'Clear', ptbr:'Limpar' },
+  lblLimpiarTodo: { es:'Limpiar todo', en:'Clear all', ptbr:'Limpar tudo' },
   searchPh:  { es:'Buscar en el archivo — nombre, pueblo, material…', en:'Search the archive — name, people, material…', ptbr:'Buscar no arquivo — nome, povo, material…' },
   noResults: { es:'Ningún objeto coincide con la búsqueda.', en:'No objects match the search.', ptbr:'Nenhum objeto corresponde à busca.' },
   /* --- umbral (landing) --- */
@@ -1051,7 +1099,7 @@ function renderFilters(){
       if (nSel){
         const clr = document.createElement('button');
         clr.className = 'chip chip-clear';
-        clr.textContent = t(UI.lblLimpiar);
+        clr.textContent = '× ' + t(UI.lblLimpiar);
         clr.addEventListener('click', () => {
           activeFacets[f.key].clear();
           renderFilters(); renderGrid();
@@ -1062,6 +1110,21 @@ function renderFilters(){
     }
     $f.appendChild(wrap);
   });
+
+  /* limpiar TODO: aparece solo cuando hay alguna selección en cualquier menú */
+  const totalSel = Object.values(activeFacets).reduce((n, s) => n + s.size, 0);
+  if (totalSel){
+    const all = document.createElement('button');
+    all.className = 'clear-all';
+    all.textContent = '× ' + t(UI.lblLimpiarTodo);
+    all.addEventListener('click', (e) => {
+      e.stopPropagation();
+      Object.keys(activeFacets).forEach(k => activeFacets[k].clear());
+      openFacet = null;
+      renderFilters(); renderGrid();
+    });
+    $f.appendChild(all);
+  }
 }
 
 const $searchBox = document.getElementById('searchBox');
@@ -1245,12 +1308,12 @@ function renderPanel(a){
   const escv = s => String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
   const facetLinks = (raw, facetKey) => splitList(raw).map(v =>
     `<button class="meta-link" data-facet="${facetKey}" data-val="${escv(v)}">${escv(v)}</button>`
-  ).join(' · ');
+  ).join(' ');
   const lugarLinks = (a.lugar || '').split(';').map(s => s.trim()).filter(Boolean).map(l => {
     const partes = l.split('>').map(x => x.trim()).filter(Boolean);
     const chip = partes[partes.length - 1];
     return `<button class="meta-link" data-facet="lugar" data-val="${escv(chip)}">${escv(partes.join(' › '))}</button>`;
-  }).join('  ·  ');
+  }).join(' ');
 
   const fichaRows = [
     [UI.lblOtrosNombres, escv(a.otros_nombres || '')],
@@ -1260,15 +1323,25 @@ function renderPanel(a){
     [UI.lblLugar,        lugarLinks],
   ].filter(r => r[1]);
 
-  let asocHTML = '';
+  /* asociaciones: las que existen en el archivo → franja visual con thumbnail;
+     códigos que (aún) no corresponden a un objeto publicado → texto en la ficha */
+  let asocHTML = '', relHTML = '';
   if (a.asociaciones){
-    const links = a.asociaciones.split(/[,;]/).map(s => s.trim()).filter(Boolean).map(code => {
+    const rels = [], sueltos = [];
+    a.asociaciones.split(/[,;]/).map(s => s.trim()).filter(Boolean).forEach(code => {
       const rel = ASSETS.find(x => x.catalog === code || x.id === code);
-      return rel
-        ? `<button class="asoc-link" data-rel="${rel.id}">${rel.catalog} · ${t(rel.name)}</button>`
-        : `<span>${code}</span>`;
-    }).join(' ');
-    asocHTML = `<div class="ficha-row"><dt>${t(UI.lblAsociaciones)}</dt><dd>${links}</dd></div>`;
+      rel ? rels.push(rel) : sueltos.push(code);
+    });
+    if (sueltos.length)
+      asocHTML = `<div class="ficha-row"><dt>${t(UI.lblAsociaciones)}</dt><dd>${sueltos.map(escv).join(' · ')}</dd></div>`;
+    if (rels.length)
+      relHTML = `<div class="rule"></div><div class="rel-block"><h4>${t(UI.lblAsociaciones)}</h4><div class="rel-row">` +
+        rels.map(r => `
+          <button class="rel-card" data-rel="${r.id}">
+            ${r.thumb ? `<img src="${r.thumb}" alt="" loading="lazy">` : `<span class="rel-ph"></span>`}
+            <span class="rel-name">${t(r.name)}</span>
+            <span class="rel-cat">${r.catalog}</span>
+          </button>`).join('') + `</div></div>`;
   }
 
   let fichaHTML = '';
@@ -1287,11 +1360,15 @@ function renderPanel(a){
     <button class="badge badge-link ${a.provenance === 'fotogrametria' ? 'foto' : 'reco'}" data-nav="provenance">${t(UI[a.provenance])}</button>
     <div class="desc">${t(a.desc)}</div>
     ${fichaHTML}
-    ${mediaHTML}`;
+    ${mediaHTML}
+    ${relHTML}`;
 
-  /* ruta e insignia: cerrar la ficha y abrir la biblioteca ya filtrada */
+  /* ruta e insignia: cerrar la ficha y abrir la biblioteca ya filtrada.
+     Se limpian TODOS los filtros previos: la selección desde el detalle
+     es una búsqueda nueva, no un refinamiento de la anterior */
   function navFiltered(fn){
     query = ''; $searchBox.value = '';
+    Object.keys(activeFacets).forEach(k => activeFacets[k].clear());
     fn();
     closeDetail();
     renderCats(); renderFilters(); renderGrid();
@@ -1318,11 +1395,11 @@ function renderPanel(a){
     });
   });
 
-  /* asociaciones: navegar al objeto relacionado */
-  $panel.querySelectorAll('.asoc-link').forEach(b => {
+  /* relacionados: navegar al objeto (la ficha y el visor cambian en sitio) */
+  $panel.querySelectorAll('.rel-card').forEach(b => {
     b.addEventListener('click', () => {
       const rel = ASSETS.find(x => x.id === b.dataset.rel);
-      if (rel) openDetail(rel);
+      if (rel){ openDetail(rel); $panel.scrollTop = 0; $detail.scrollTop = 0; }
     });
   });
 }
@@ -1680,11 +1757,12 @@ function initUmbral(){
   const group = new THREE.Group();
   scene.add(group);
 
-  /* el artefacto del umbral: primer objeto del manifiesto con modelo */
-  /* objeto que recibe al visitante: preferir uno marcado umbral:true en la
-     matriz; si no, el primero fotogramétrico; si no, el primero que haya */
-  const teaser = ASSETS.find(a => a.umbral)
-              || ASSETS.find(a => a.provenance === 'fotogrametria')
+  /* objeto que recibe al visitante: AL AZAR entre los marcados con x en la
+     columna portada de la Matriz (cambia en cada visita); si ninguno,
+     al azar entre los fotogramétricos; si no, el primero que haya */
+  const azar = arr => arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
+  const teaser = azar(ASSETS.filter(a => a.umbral))
+              || azar(ASSETS.filter(a => a.provenance === 'fotogrametria'))
               || ASSETS[0];
   if (!teaser) return;   /* sin datos, no montar el teaser */
   const meshes = [];
