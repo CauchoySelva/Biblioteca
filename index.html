@@ -74,8 +74,22 @@
 
   /* ---------- umbral (landing) ---------- */
   body.umbral{ overflow:hidden; }
-  /* modo vista previa (?preview=1): no hay archivo al que volver */
+  /* modo vista previa (?preview=1): solo existe el detalle — se oculta el
+     resto del chrome (umbral, cabecera, filtros, grilla) para que nada
+     se asome por las zonas translúcidas del velo */
   body.preview .back{ display:none; }
+  body.preview #landing,
+  body.preview header,
+  body.preview nav.cats,
+  body.preview .toolbar,
+  body.preview main{ display:none; }
+  /* los enlaces de filtrado (ruta, técnica, metadata, relacionados) se VEN
+     porque son parte del diseño real, pero no actúan: en preview no hay
+     grilla a la que ir y sacarían al equipo de la previsualización */
+  body.preview .ruta-link,
+  body.preview .meta-link,
+  body.preview .badge-link,
+  body.preview .rel-card{ pointer-events:none; }
   #landing{
     position:fixed; inset:0; z-index:12;   /* sobre la barra de búsqueda/filtros (z-10), bajo la atmósfera (z-19+) */
     background: radial-gradient(ellipse 90% 90% at 50% 40%, var(--bg-2) 0%, var(--bg) 72%);
@@ -1909,6 +1923,15 @@ async function boot(){
    ================================================================ */
 function initPreview(){
   document.body.classList.add('preview');
+  /* el conmutador de idiomas vive en la cabecera (oculta en preview):
+     se muda al detalle, flotante, para poder revisar ES/EN/PT.
+     Esquina superior izquierda: la del botón "volver", que aquí no existe;
+     la derecha la ocupa el "✕ Volver a revisión" de la página madre. */
+  const lt = document.querySelector('.lang-toggle');
+  if (lt){
+    lt.style.cssText = 'position:fixed; top:14px; left:16px; z-index:60; background:rgba(13,8,4,.8);';
+    $detail.appendChild(lt);
+  }
   const aplicar = (a) => {
     if (LEGACY_CATS[a.category]) a.category = LEGACY_CATS[a.category];
     const mismoModelo = currentAsset && currentAsset.model === a.model;
@@ -1930,7 +1953,22 @@ function initPreview(){
   };
   window.addEventListener('message', (e) => {
     const d = e.data;
-    if (!d || d.tipo !== 'wauro-preview' || !d.asset || typeof d.asset !== 'object') return;
+    if (!d) return;
+    /* orden de captura de thumbnail: renderizar un cuadro fresco y capturar
+       en ese mismo instante (el buffer del canvas no se conserva) */
+    if (d.tipo === 'wauro-captura'){
+      try {
+        if (!viewer.model) throw new Error('sin modelo en el visor');
+        viewer.renderer.render(viewer.scene, viewer.camera);
+        const dataUrl = viewer.renderer.domElement.toDataURL('image/png');
+        window.parent.postMessage({ tipo:'wauro-thumb', dataUrl: dataUrl }, '*');
+      } catch (err) {
+        window.parent.postMessage({ tipo:'wauro-thumb',
+          error: String((err && err.message) || err) }, '*');
+      }
+      return;
+    }
+    if (d.tipo !== 'wauro-preview' || !d.asset || typeof d.asset !== 'object') return;
     try { aplicar(d.asset); } catch (err) { console.error('[preview]', err); }
   });
   if (window.parent !== window)
