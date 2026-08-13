@@ -74,6 +74,8 @@
 
   /* ---------- umbral (landing) ---------- */
   body.umbral{ overflow:hidden; }
+  /* modo vista previa (?preview=1): no hay archivo al que volver */
+  body.preview .back{ display:none; }
   #landing{
     position:fixed; inset:0; z-index:12;   /* sobre la barra de búsqueda/filtros (z-10), bajo la atmósfera (z-19+) */
     background: radial-gradient(ellipse 90% 90% at 50% 40%, var(--bg-2) 0%, var(--bg) 72%);
@@ -753,6 +755,8 @@ const SAMPLE = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Model
 const ASSETS_URL = 'https://cauchoyselva.github.io/wauro-assets/assets.json';
 
 let ASSETS = [];  /* se llena en boot(): con el JSON en vivo o con el fallback */
+/* modo vista previa del pipeline interno (ver initPreview al final) */
+const PREVIEW = new URLSearchParams(location.search).get('preview') === '1';
 
 const FALLBACK_ASSETS = [
   {
@@ -1882,6 +1886,7 @@ async function fetchAssets(){
 
 async function boot(){
   renderHeader();
+  if (PREVIEW){ initPreview(); return; }   /* modo vista previa: sin red, sin umbral */
   renderLanding();
   ASSETS = await fetchAssets();
   indexAssets();
@@ -1889,6 +1894,47 @@ async function boot(){
   renderFilters();
   renderGrid();
   initUmbral();          /* el umbral usa ASSETS, corre ya con datos */
+}
+
+/* ================================================================
+   MODO VISTA PREVIA (?preview=1) — para el pipeline interno.
+   La página no lee assets.json ni muestra grilla/umbral: espera un
+   objeto en formato manifiesto por postMessage y abre su detalle.
+   Así la mesa de revisión previsualiza el borrador EXACTAMENTE como
+   lo verá el visitante — mismo código, mismo CSS, cero duplicación.
+   Protocolo:
+     iframe → padre : { tipo:'wauro-preview-ready' }        (al cargar)
+     padre → iframe : { tipo:'wauro-preview', asset:{...} } (cada cambio)
+   Reenviar el mismo modelo solo re-renderiza la ficha (no recarga el 3D).
+   ================================================================ */
+function initPreview(){
+  document.body.classList.add('preview');
+  const aplicar = (a) => {
+    if (LEGACY_CATS[a.category]) a.category = LEGACY_CATS[a.category];
+    const mismoModelo = currentAsset && currentAsset.model === a.model;
+    ASSETS = [a];          /* asociaciones/idioma resuelven contra el borrador */
+    indexAssets();
+    if (mismoModelo){
+      currentAsset = a;
+      renderPanel(a);      /* edición en vivo: ficha sí, 3D no se recarga */
+    } else if (a.model){
+      openDetail(a);
+    } else {
+      /* aún sin modelo: el detalle abre igual para previsualizar la ficha */
+      currentAsset = a;
+      renderPanel(a);
+      $detail.classList.add('open');
+      document.body.classList.add('viewing');
+      document.body.style.overflow = 'hidden';
+    }
+  };
+  window.addEventListener('message', (e) => {
+    const d = e.data;
+    if (!d || d.tipo !== 'wauro-preview' || !d.asset || typeof d.asset !== 'object') return;
+    try { aplicar(d.asset); } catch (err) { console.error('[preview]', err); }
+  });
+  if (window.parent !== window)
+    window.parent.postMessage({ tipo: 'wauro-preview-ready' }, '*');
 }
 
 boot();
