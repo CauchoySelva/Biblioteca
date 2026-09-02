@@ -1598,6 +1598,16 @@ class Viewer {
         });
 
         // Encuadre automático
+        /* updateMatrixWorld ANTES de medir: setFromObject usa las matrices de
+           mundo tal como estén, y aquí el modelo aún no se ha añadido a la
+           escena, así que nadie las ha calculado. En una malla suelta da igual
+           —su matriz es identidad— pero en un rig sí importa: Tucú trae un
+           Armature a escala 0.01 (huesos en cm → metros) y sin propagar esa
+           transformación los bounds salen cien veces mayores, con lo que la
+           cámara se aleja cien veces y el objeto se ve diminuto.
+           Verificado con Tucú el 2026-09-02: con esta línea, setFromObject da
+           2,08 — idéntico a calcularlo por computeBoundingBox × matrixWorld. */
+        this.model.updateMatrixWorld(true);
         const box = new THREE.Box3().setFromObject(this.model);
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
@@ -1791,6 +1801,7 @@ function initUmbral(){
   umbralLoader.setDRACOLoader(umbralDraco);
   umbralLoader.load(teaser.model, (g) => {
     const obj = g.scene;
+    obj.updateMatrixWorld(true);   // ver la nota del encuadre del visor
     const box = new THREE.Box3().setFromObject(obj);
     const size = box.getSize(new THREE.Vector3()).length();
     const center = box.getCenter(new THREE.Vector3());
