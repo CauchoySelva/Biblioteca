@@ -1597,8 +1597,53 @@ class Viewer {
           if (o.isMesh){ o.castShadow = true; }
         });
 
+  /* Bounds fiables, también con esqueleto.
+     ------------------------------------------------------------------
+     Box3.setFromObject toma los bounds de la geometría en espacio de BIND
+     y les aplica la matriz del nodo. En una malla con esqueleto eso está
+     mal por partida doble: glTF dice que la transformación del nodo de una
+     malla skinned SE IGNORA (la posición la dan huesos + inverseBindMatrices),
+     y sin embargo esa matriz sí entra en la cuenta.
+
+     Caso real que lo destapó (Tucú, 2026-09-02): rig de Mixamo con los huesos
+     en centímetros y un nodo Armature a escala 0.01 que los pasa a metros —
+     escala correcta y necesaria. La geometría mide 1,51 en bind, así que el
+     personaje se dibuja a ~1,5 m; pero setFromObject devolvía 0,0151, cien
+     veces menos. La cámara se colocaba para un objeto cien veces más pequeño
+     y el personaje se salía del encuadre.
+
+     SkinnedMesh.computeBoundingBox() (three ≥ r151) calcula los bounds con la
+     deformación de la pose actual, que es lo que de verdad se ve. */
+  function boundsReales(root){
+    root.updateMatrixWorld(true);
+    let hayEsqueleto = false;
+    root.traverse(o => { if (o.isSkinnedMesh) hayEsqueleto = true; });
+    if (!hayEsqueleto) return new THREE.Box3().setFromObject(root);
+
+    const caja = new THREE.Box3();
+    root.traverse(o => {
+      if (o.isSkinnedMesh){
+        /* la pose tiene que estar resuelta antes de medir */
+        if (o.skeleton) o.skeleton.update();
+        if (typeof o.computeBoundingBox === 'function'){
+          o.computeBoundingBox();
+          if (o.boundingBox) caja.union(o.boundingBox.clone());   // ya en espacio de mundo del skinning
+        } else if (o.geometry){
+          /* three antiguo: sin la escala del nodo, que el skinning ignora */
+          o.geometry.computeBoundingBox();
+          if (o.geometry.boundingBox) caja.union(o.geometry.boundingBox.clone());
+        }
+      } else if (o.isMesh && o.geometry){
+        o.geometry.computeBoundingBox();
+        if (o.geometry.boundingBox)
+          caja.union(o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld));
+      }
+    });
+    return caja.isEmpty() ? new THREE.Box3().setFromObject(root) : caja;
+  }
+
         // Encuadre automático
-        const box = new THREE.Box3().setFromObject(this.model);
+        const box = boundsReales(this.model);
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
         const maxDim = Math.max(size.x, size.y, size.z) || 1;
@@ -1791,7 +1836,7 @@ function initUmbral(){
   umbralLoader.setDRACOLoader(umbralDraco);
   umbralLoader.load(teaser.model, (g) => {
     const obj = g.scene;
-    const box = new THREE.Box3().setFromObject(obj);
+    const box = boundsReales(obj);
     const size = box.getSize(new THREE.Vector3()).length();
     const center = box.getCenter(new THREE.Vector3());
     obj.position.sub(center);
