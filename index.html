@@ -1695,6 +1695,13 @@ class Viewer {
       bar.appendChild(b);
       buttons.push(b);
     });
+
+    /* La primera animación arranca sola: un personaje quieto en T-pose no
+       dice lo que es, y descubrir que hay animaciones exige encontrar la
+       barra primero. Se dispara el botón en vez de llamar a play() para no
+       duplicar la lógica de fundidos y estado visual — si esa lógica cambia,
+       el arranque automático la hereda. */
+    if (buttons.length) buttons[0].click();
   }
 }
 
