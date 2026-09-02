@@ -1597,61 +1597,8 @@ class Viewer {
           if (o.isMesh){ o.castShadow = true; }
         });
 
-  /* Bounds fiables, también con esqueleto.
-     ------------------------------------------------------------------
-     Box3.setFromObject toma los bounds de la geometría en espacio de BIND
-     y les aplica la matriz del nodo. En una malla con esqueleto eso está
-     mal por partida doble: glTF dice que la transformación del nodo de una
-     malla skinned SE IGNORA (la posición la dan huesos + inverseBindMatrices),
-     y sin embargo esa matriz sí entra en la cuenta.
-
-     Caso real que lo destapó (Tucú, 2026-09-02): rig de Mixamo con los huesos
-     en centímetros y un nodo Armature a escala 0.01 que los pasa a metros —
-     escala correcta y necesaria. La geometría mide 1,51 en bind, así que el
-     personaje se dibuja a ~1,5 m; pero setFromObject devolvía 0,0151, cien
-     veces menos. La cámara se colocaba para un objeto cien veces más pequeño
-     y el personaje se salía del encuadre.
-
-     SkinnedMesh.computeBoundingBox() (three ≥ r151) calcula los bounds con la
-     deformación de la pose actual, que es lo que de verdad se ve. */
-  function boundsReales(root){
-    root.updateMatrixWorld(true);
-    let hayEsqueleto = false;
-    root.traverse(o => { if (o.isSkinnedMesh) hayEsqueleto = true; });
-
-    const porSetFromObject = new THREE.Box3().setFromObject(root);
-    if (!hayEsqueleto) return porSetFromObject;
-
-    /* Con esqueleto hay tres candidatos y ninguno es obviamente el bueno:
-       setFromObject usa los bounds de bind × la matriz del nodo; computeBoundingBox
-       devuelve la pose deformada en espacio LOCAL de la malla; y esa misma caja
-       llevada a mundo con matrixWorld es la tercera. Se imprimen las tres para
-       decidir con números en vez de con teoría — Tucú desmintió dos hipótesis. */
-    const local = new THREE.Box3(), mundo = new THREE.Box3();
-    root.traverse(o => {
-      if (!o.isSkinnedMesh) return;
-      if (o.skeleton) o.skeleton.update();
-      if (typeof o.computeBoundingBox === 'function'){
-        o.computeBoundingBox();
-        if (o.boundingBox){
-          local.union(o.boundingBox);
-          mundo.union(o.boundingBox.clone().applyMatrix4(o.matrixWorld));
-        }
-      }
-    });
-    const dim = b => b.isEmpty() ? null
-      : +Math.max(...b.getSize(new THREE.Vector3()).toArray()).toFixed(4);
-    console.log('[Wauro] bounds con esqueleto — setFromObject:', dim(porSetFromObject),
-                '| computeBoundingBox local:', dim(local),
-                '| computeBoundingBox × matrixWorld:', dim(mundo));
-
-    /* mientras se decide, se conserva el comportamiento original: es el que
-       llevaba meses funcionando para todo lo demás */
-    return porSetFromObject;
-  }
-
         // Encuadre automático
-        const box = boundsReales(this.model);
+        const box = new THREE.Box3().setFromObject(this.model);
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
         const maxDim = Math.max(size.x, size.y, size.z) || 1;
@@ -1844,7 +1791,7 @@ function initUmbral(){
   umbralLoader.setDRACOLoader(umbralDraco);
   umbralLoader.load(teaser.model, (g) => {
     const obj = g.scene;
-    const box = boundsReales(obj);
+    const box = new THREE.Box3().setFromObject(obj);
     const size = box.getSize(new THREE.Vector3()).length();
     const center = box.getCenter(new THREE.Vector3());
     obj.position.sub(center);
