@@ -1618,28 +1618,36 @@ class Viewer {
     root.updateMatrixWorld(true);
     let hayEsqueleto = false;
     root.traverse(o => { if (o.isSkinnedMesh) hayEsqueleto = true; });
-    if (!hayEsqueleto) return new THREE.Box3().setFromObject(root);
 
-    const caja = new THREE.Box3();
+    const porSetFromObject = new THREE.Box3().setFromObject(root);
+    if (!hayEsqueleto) return porSetFromObject;
+
+    /* Con esqueleto hay tres candidatos y ninguno es obviamente el bueno:
+       setFromObject usa los bounds de bind × la matriz del nodo; computeBoundingBox
+       devuelve la pose deformada en espacio LOCAL de la malla; y esa misma caja
+       llevada a mundo con matrixWorld es la tercera. Se imprimen las tres para
+       decidir con números en vez de con teoría — Tucú desmintió dos hipótesis. */
+    const local = new THREE.Box3(), mundo = new THREE.Box3();
     root.traverse(o => {
-      if (o.isSkinnedMesh){
-        /* la pose tiene que estar resuelta antes de medir */
-        if (o.skeleton) o.skeleton.update();
-        if (typeof o.computeBoundingBox === 'function'){
-          o.computeBoundingBox();
-          if (o.boundingBox) caja.union(o.boundingBox.clone());   // ya en espacio de mundo del skinning
-        } else if (o.geometry){
-          /* three antiguo: sin la escala del nodo, que el skinning ignora */
-          o.geometry.computeBoundingBox();
-          if (o.geometry.boundingBox) caja.union(o.geometry.boundingBox.clone());
+      if (!o.isSkinnedMesh) return;
+      if (o.skeleton) o.skeleton.update();
+      if (typeof o.computeBoundingBox === 'function'){
+        o.computeBoundingBox();
+        if (o.boundingBox){
+          local.union(o.boundingBox);
+          mundo.union(o.boundingBox.clone().applyMatrix4(o.matrixWorld));
         }
-      } else if (o.isMesh && o.geometry){
-        o.geometry.computeBoundingBox();
-        if (o.geometry.boundingBox)
-          caja.union(o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld));
       }
     });
-    return caja.isEmpty() ? new THREE.Box3().setFromObject(root) : caja;
+    const dim = b => b.isEmpty() ? null
+      : +Math.max(...b.getSize(new THREE.Vector3()).toArray()).toFixed(4);
+    console.log('[Wauro] bounds con esqueleto — setFromObject:', dim(porSetFromObject),
+                '| computeBoundingBox local:', dim(local),
+                '| computeBoundingBox × matrixWorld:', dim(mundo));
+
+    /* mientras se decide, se conserva el comportamiento original: es el que
+       llevaba meses funcionando para todo lo demás */
+    return porSetFromObject;
   }
 
         // Encuadre automático
