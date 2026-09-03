@@ -119,6 +119,10 @@
     color:var(--cream); margin-bottom:20px;
   }
   .land-copy h1 em{ color:var(--terra-hi); font-style:italic; }
+  /* la bajada del título es una unidad: se prefiere achicarla antes que
+     partirla en dos renglones, para que el título sean siempre dos líneas */
+  .land-copy h1 .land-sub{ white-space:nowrap; display:inline-block;
+    font-size:clamp(26px, 4.4vw, 62px); }
   .masthead h1 .marca{ color:var(--terra-hi); font-style:italic; }
   .land-lede{
     font-size:17px; line-height:1.66; color:var(--muted);
@@ -931,9 +935,9 @@ const UI = {
      segunda describe qué es. 'Patrimonial' es el término que una universidad
      o un museo reconoce en los tres idiomas. */
   landTitle: {
-    es:'<em>Amazonía 3D</em><br>Biblioteca Patrimonial',
-    en:'<em>Amazonian 3D</em><br>Heritage Library',
-    ptbr:'<em>Amazônia 3D</em><br>Biblioteca Patrimonial'
+    es:'<em>Amazonía 3D</em><br><span class="land-sub">Biblioteca Patrimonial</span>',
+    en:'<em>Amazonian 3D</em><br><span class="land-sub">Heritage Library</span>',
+    ptbr:'<em>Amazônia 3D</em><br><span class="land-sub">Biblioteca Patrimonial</span>'
   },
   landLede: {
     es:'La biblioteca de assets de Wa\'uro es una colección digital de preservación y consulta creada a partir de la producción del juego. Reúne objetos, personajes, criaturas y entornos del Vaupés, y funciona no solo como base visual y técnica del proyecto, sino también como un archivo vivo de memorias materiales, históricas y orales.',
