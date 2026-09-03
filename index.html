@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0D0804">
-<title>Archivo de Objetos — Wa'uro</title>
+<title>Amazonian 3D Heritage Library</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
@@ -232,6 +232,9 @@
     margin-top:10px; max-width:52ch; color:var(--muted); font-size:15.5px;
   }
   .lang-toggle{ display:flex; gap:2px; border:1px solid var(--line); }
+  .lang-umbral{ position:absolute; top:22px; right:24px; z-index:20;
+    background:rgba(13,8,4,.55); backdrop-filter:blur(3px); }
+  @media (max-width:760px){ .lang-umbral{ top:14px; right:14px; } }
   .lang-toggle button{
     padding:7px 13px; font-size:12px; letter-spacing:.14em; color:var(--muted);
     transition:color .2s, background .2s;
@@ -634,6 +637,15 @@
 
 <section id="landing" aria-label="Umbral del archivo">
   <div class="land-grid">
+    <!-- Selector de idioma propio del umbral. No se reutiliza el de la
+         cabecera porque esa cabecera pertenece a la biblioteca y aquí no
+         existe todavía; los dos escriben en el mismo estado y se sincronizan
+         por aplicarIdioma(). -->
+    <div class="lang-toggle lang-umbral" role="group" aria-label="Idioma">
+      <button data-lang="es" aria-pressed="true">ES</button>
+      <button data-lang="en" aria-pressed="false">EN</button>
+      <button data-lang="ptbr" aria-pressed="false">PT</button>
+    </div>
     <div class="land-copy land-copy-top">
       <p class="eyebrow" data-ui="landEyebrow"></p>
       <h1 id="landTitle"></h1>
@@ -667,7 +679,7 @@
 <header>
   <div class="masthead">
     <span class="eyebrow" data-ui="eyebrow">Estudio La Selva · Vaupés, Colombia</span>
-    <h1><em>Wa'uro</em> — <span data-ui="title">Archivo de Objetos</span></h1>
+    <h1><em>Amazonian 3D</em> Heritage Library</h1>
     <p class="sub" data-ui="subtitle"></p>
   </div>
   <div class="lang-toggle" role="group" aria-label="Idioma">
@@ -876,6 +888,8 @@ const FALLBACK_ASSETS = [
    2. UI STRINGS + IDIOMA
    ================================================================ */
 const UI = {
+  /* sin uso desde que la cabecera lleva el nombre propio; se conserva por si
+     alguna vista futura necesita el descriptor traducido */
   title:    { es:'Archivo de Objetos', en:'Object Archive', ptbr:'Arquivo de Objetos' },
   eyebrow:  { es:'Estudio La Selva · Vaupés, Colombia', en:'Estudio La Selva · Vaupés, Colombia', ptbr:'Estudio La Selva · Vaupés, Colômbia' },
   subtitle: {
@@ -911,10 +925,12 @@ const UI = {
   noResults: { es:'Ningún objeto coincide con la búsqueda.', en:'No objects match the search.', ptbr:'Nenhum objeto corresponde à busca.' },
   /* --- umbral (landing) --- */
   landEyebrow: { es:'Estudio La Selva · Vaupés, Colombia', en:'Estudio La Selva · Vaupés, Colombia', ptbr:'Estudio La Selva · Vaupés, Colômbia' },
+  /* El nombre del archivo es propio y no se traduce, igual que no se traducía
+     'Wa\'uro'. Lo que sí cambia por idioma es la bajada (landLede). */
   landTitle: {
-    es:'Archivo <em>Wa\'uro</em>',
-    en:'The <em>Wa\'uro</em> Archive',
-    ptbr:'Arquivo <em>Wa\'uro</em>'
+    es:'<em>Amazonian 3D</em> Heritage Library',
+    en:'<em>Amazonian 3D</em> Heritage Library',
+    ptbr:'<em>Amazonian 3D</em> Heritage Library'
   },
   landLede: {
     es:'La biblioteca de assets de Wa\'uro es una colección digital de preservación y consulta creada a partir de la producción del juego. Reúne objetos, personajes, criaturas y entornos del Vaupés, y funciona no solo como base visual y técnica del proyecto, sino también como un archivo vivo de memorias materiales, históricas y orales.',
@@ -1271,8 +1287,10 @@ function renderLanding(){
 document.querySelectorAll('.lang-toggle button').forEach(b => {
   b.addEventListener('click', () => {
     lang = b.dataset.lang;
+    /* por idioma, no por identidad: hay DOS selectores (umbral y cabecera) y
+       comparar el botón consigo mismo apagaría el del otro grupo */
     document.querySelectorAll('.lang-toggle button')
-      .forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      .forEach(x => x.setAttribute('aria-pressed', String(x.dataset.lang === lang)));
     Object.keys(activeFacets).forEach(k => activeFacets[k].clear());
     renderHeader(); renderCats(); renderFilters(); renderGrid(); renderLanding();
     if (currentAsset) renderPanel(currentAsset);
@@ -1945,7 +1963,7 @@ function initPreview(){
      se muda al detalle, flotante, para poder revisar ES/EN/PT.
      Esquina superior izquierda: la del botón "volver", que aquí no existe;
      la derecha la ocupa el "✕ Volver a revisión" de la página madre. */
-  const lt = document.querySelector('.lang-toggle');
+  const lt = document.querySelector('.lang-toggle:not(.lang-umbral)');
   if (lt){
     lt.style.cssText = 'position:fixed; top:14px; left:16px; z-index:60; background:rgba(13,8,4,.8);';
     $detail.appendChild(lt);
