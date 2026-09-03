@@ -119,6 +119,7 @@
     color:var(--cream); margin-bottom:20px;
   }
   .land-copy h1 em{ color:var(--terra-hi); font-style:italic; }
+  .masthead h1 .marca{ color:var(--terra-hi); font-style:italic; }
   .land-lede{
     font-size:17px; line-height:1.66; color:var(--muted);
     max-width:58ch; margin-bottom:26px;
@@ -679,7 +680,7 @@
 <header>
   <div class="masthead">
     <span class="eyebrow" data-ui="eyebrow">Estudio La Selva · Vaupés, Colombia</span>
-    <h1><em>Amazonian 3D</em> <span data-ui="title"></span></h1>
+    <h1><span data-ui="titleMarca" class="marca"></span> <span data-ui="title"></span></h1>
     <p class="sub" data-ui="subtitle"></p>
   </div>
   <div class="lang-toggle" role="group" aria-label="Idioma">
@@ -888,9 +889,10 @@ const FALLBACK_ASSETS = [
    2. UI STRINGS + IDIOMA
    ================================================================ */
 const UI = {
-  /* nombre propio del archivo: no se traduce. La cabecera pinta
-     '<em>Amazonian 3D</em> ' + t(UI.title). */
-  title:    { es:'Heritage Library', en:'Heritage Library', ptbr:'Heritage Library' },
+  /* la cabecera pinta t(UI.titleMarca) + ' ' + t(UI.title); la marca va en
+     cursiva terracota como el <em> del umbral */
+  titleMarca: { es:'Amazonía 3D', en:'Amazonian 3D', ptbr:'Amazônia 3D' },
+  title:      { es:'Biblioteca Patrimonial', en:'Heritage Library', ptbr:'Biblioteca Patrimonial' },
   eyebrow:  { es:'Estudio La Selva · Vaupés, Colombia', en:'Estudio La Selva · Vaupés, Colombia', ptbr:'Estudio La Selva · Vaupés, Colômbia' },
   subtitle: {
     es:'Reconstrucciones y digitalizaciones de artefactos del pueblo Tukano, creadas junto a la comunidad para el mundo de Wa\'uro.',
@@ -925,12 +927,13 @@ const UI = {
   noResults: { es:'Ningún objeto coincide con la búsqueda.', en:'No objects match the search.', ptbr:'Nenhum objeto corresponde à busca.' },
   /* --- umbral (landing) --- */
   landEyebrow: { es:'Estudio La Selva · Vaupés, Colombia', en:'Estudio La Selva · Vaupés, Colombia', ptbr:'Estudio La Selva · Vaupés, Colômbia' },
-  /* El nombre del archivo es propio y no se traduce, igual que no se traducía
-     'Wa\'uro'. Lo que sí cambia por idioma es la bajada (landLede). */
+  /* El nombre sí se traduce: la primera línea nombra el territorio y la
+     segunda describe qué es. 'Patrimonial' es el término que una universidad
+     o un museo reconoce en los tres idiomas. */
   landTitle: {
-    es:'<em>Amazonian 3D</em><br>Heritage Library',
+    es:'<em>Amazonía 3D</em><br>Biblioteca Patrimonial',
     en:'<em>Amazonian 3D</em><br>Heritage Library',
-    ptbr:'<em>Amazonian 3D</em><br>Heritage Library'
+    ptbr:'<em>Amazônia 3D</em><br>Biblioteca Patrimonial'
   },
   landLede: {
     es:'La biblioteca de assets de Wa\'uro es una colección digital de preservación y consulta creada a partir de la producción del juego. Reúne objetos, personajes, criaturas y entornos del Vaupés, y funciona no solo como base visual y técnica del proyecto, sino también como un archivo vivo de memorias materiales, históricas y orales.',
@@ -1267,6 +1270,7 @@ function renderGrid(){
 }
 
 function renderHeader(){
+  document.querySelector('[data-ui="titleMarca"]').textContent = t(UI.titleMarca);
   document.querySelector('[data-ui="title"]').textContent = t(UI.title);
   document.querySelector('[data-ui="eyebrow"]').textContent = t(UI.eyebrow);
   document.querySelector('[data-ui="subtitle"]').textContent = t(UI.subtitle);
