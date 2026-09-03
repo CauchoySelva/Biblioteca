@@ -115,7 +115,7 @@
   }
   .land-copy h1{
     font-family:var(--display); font-weight:600;
-    font-size:clamp(46px, 5.6vw, 78px); line-height:1.0;
+    font-size:clamp(46px, 5.6vw, 78px); line-height:1.06;   /* dos líneas: 1.0 las pegaba */
     color:var(--cream); margin-bottom:20px;
   }
   .land-copy h1 em{ color:var(--terra-hi); font-style:italic; }
@@ -679,7 +679,7 @@
 <header>
   <div class="masthead">
     <span class="eyebrow" data-ui="eyebrow">Estudio La Selva · Vaupés, Colombia</span>
-    <h1><em>Amazonian 3D</em> Heritage Library</h1>
+    <h1><em>Amazonian 3D</em> <span data-ui="title"></span></h1>
     <p class="sub" data-ui="subtitle"></p>
   </div>
   <div class="lang-toggle" role="group" aria-label="Idioma">
@@ -888,9 +888,9 @@ const FALLBACK_ASSETS = [
    2. UI STRINGS + IDIOMA
    ================================================================ */
 const UI = {
-  /* sin uso desde que la cabecera lleva el nombre propio; se conserva por si
-     alguna vista futura necesita el descriptor traducido */
-  title:    { es:'Archivo de Objetos', en:'Object Archive', ptbr:'Arquivo de Objetos' },
+  /* nombre propio del archivo: no se traduce. La cabecera pinta
+     '<em>Amazonian 3D</em> ' + t(UI.title). */
+  title:    { es:'Heritage Library', en:'Heritage Library', ptbr:'Heritage Library' },
   eyebrow:  { es:'Estudio La Selva · Vaupés, Colombia', en:'Estudio La Selva · Vaupés, Colombia', ptbr:'Estudio La Selva · Vaupés, Colômbia' },
   subtitle: {
     es:'Reconstrucciones y digitalizaciones de artefactos del pueblo Tukano, creadas junto a la comunidad para el mundo de Wa\'uro.',
@@ -928,9 +928,9 @@ const UI = {
   /* El nombre del archivo es propio y no se traduce, igual que no se traducía
      'Wa\'uro'. Lo que sí cambia por idioma es la bajada (landLede). */
   landTitle: {
-    es:'<em>Amazonian 3D</em> Heritage Library',
-    en:'<em>Amazonian 3D</em> Heritage Library',
-    ptbr:'<em>Amazonian 3D</em> Heritage Library'
+    es:'<em>Amazonian 3D</em><br>Heritage Library',
+    en:'<em>Amazonian 3D</em><br>Heritage Library',
+    ptbr:'<em>Amazonian 3D</em><br>Heritage Library'
   },
   landLede: {
     es:'La biblioteca de assets de Wa\'uro es una colección digital de preservación y consulta creada a partir de la producción del juego. Reúne objetos, personajes, criaturas y entornos del Vaupés, y funciona no solo como base visual y técnica del proyecto, sino también como un archivo vivo de memorias materiales, históricas y orales.',
