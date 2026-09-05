@@ -340,6 +340,25 @@
   }
   .chip:hover{ color:var(--cream); }
   .chip[aria-pressed="true"]{ color:var(--dorado-hi); border-color:var(--dorado); }
+  /* Selecciones activas. Se leen como los chips marcados del panel —dorado,
+     misma píldora— porque son la misma cosa vista desde fuera. Lo que añaden
+     es la faceta a la que pertenecen: un «Tukano ×» suelto no dice qué se
+     está filtrando. */
+  .active-filters{ display:flex; flex-wrap:wrap; gap:7px; padding:0 34px 4px; }
+  .active-filters:empty{ display:none; }
+  .active-chip{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:11.5px; letter-spacing:.14em; text-transform:uppercase;
+    padding:6px 9px 6px 13px; border-radius:20px;
+    border:1px solid var(--dorado); color:var(--dorado-hi);
+    background:rgba(212,168,67,.07);
+    transition:border-color .2s, background .2s;
+  }
+  .active-chip:hover{ border-color:var(--dorado-hi); background:rgba(212,168,67,.14); }
+  .active-chip .af-faceta{ color:var(--faint); }
+  .active-chip .af-x{ font-size:14px; line-height:1; color:var(--muted); }
+  .active-chip:hover .af-x{ color:var(--terra-hi); }
+  @media (max-width:900px){ .active-filters{ padding:0 20px 4px; } }
   @media (max-width:900px){
     .toolbar{ padding:14px 20px 0; }
     #searchBox{ max-width:none; }
@@ -698,6 +717,9 @@
 <div class="toolbar">
   <input type="search" id="searchBox" autocomplete="off">
   <div class="filters" id="filters"></div>
+  <!-- Selecciones activas a la vista: sin esto, saber qué está filtrado exige
+       abrir cada menú o contar los números junto a los títulos. -->
+  <div class="active-filters" id="activeFilters"></div>
 </div>
 
 <main>
@@ -1150,6 +1172,29 @@ function renderFilters(){
       wrap.appendChild(pop);
     }
     $f.appendChild(wrap);
+  });
+
+  /* Selecciones activas, fuera de los menús. Se pinta AQUÍ, al final de
+     renderFilters, para que herede la poda de arriba: un valor que dejó de
+     existir en el contexto ya se soltó, así que no puede aparecer un chip
+     fantasma que no case con nada. */
+  const $af = document.getElementById('activeFilters');
+  $af.innerHTML = '';
+  FACETS.forEach(f => {
+    const sel = activeFacets[f.key];
+    if (!sel || !sel.size) return;
+    [...sel].sort((a, b) => a.localeCompare(b)).forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'active-chip';
+      b.title = t(UI.lblLimpiar) + ': ' + f.label(v);
+      b.innerHTML = `<span><span class="af-faceta">${f.title()} · </span>${f.label(v)}</span>` +
+                    `<span class="af-x" aria-hidden="true">×</span>`;
+      b.addEventListener('click', () => {
+        activeFacets[f.key].delete(v);
+        renderFilters(); renderGrid();
+      });
+      $af.appendChild(b);
+    });
   });
 
   /* limpiar TODO: aparece solo cuando hay alguna selección en cualquier menú */
